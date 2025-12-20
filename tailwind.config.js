@@ -1,3 +1,4 @@
+// tailwind config for about us page
 /** @type {import('tailwindcss').Config} */
 export default {
     content: [
