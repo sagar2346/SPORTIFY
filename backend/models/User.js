@@ -86,6 +86,31 @@ const UserSchema = new mongoose.Schema({
       },
     },
   ],
+  // KYC verification
+  kycStatus: {
+    type: String,
+    enum: ['not_verified', 'pending', 'verified', 'rejected'],
+    default: 'not_verified',
+  },
+  kycDocumentFront: {
+    type: String,
+    default: '',
+  },
+  kycDocumentBack: {
+    type: String,
+    default: '',
+  },
+  kycPassportPhoto: {
+    type: String,
+    default: '',
+  },
+  kycRejectionReason: {
+    type: String,
+    default: '',
+  },
+  kycSubmittedAt: {
+    type: Date,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

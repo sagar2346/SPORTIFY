@@ -178,6 +178,8 @@ export const adminService = {
   updateUser: (id, data) => api.put(`/admin/users/${id}`, data),
   updateUserStatus: (id, status) => api.put(`/admin/users/${id}/status`, { status }),
   getOwnerRevenues: () => api.get('/admin/revenue-by-owner'),
+  getPendingKyc: () => api.get('/admin/kyc/pending'),
+  updateKycStatus: (userId, data) => api.put(`/admin/kyc/${userId}/status`, data),
 };
 
 // Inventory services
@@ -211,6 +213,14 @@ export const messageService = {
   getMyMessages: () => api.get('/messages/my'),
   replyToMessage: (id, reply) => api.post(`/messages/${id}/reply`, { reply }),
   deleteMessage: (id) => api.delete(`/messages/${id}`),
+};
+
+// KYC services
+export const kycService = {
+  getKycStatus: () => api.get('/kyc/status'),
+  uploadDocument: (formData) => api.post('/kyc/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
 };
 
 export default api;
