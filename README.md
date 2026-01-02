@@ -20,9 +20,10 @@ A dedicated page showcasing our mission, values, and the professional team behin
 This push focus on the following core components:
 
 ### Frontend
-- **Login & Registration**: User-friendly authentication portal with role-based redirection.
+- **Login & Registration**: User-friendly authentication portal with role-based access.
 - **About Us**: Professional company overview and team showcase.
 - **Auth Context**: Global state management for user authentication.
+- 
 
 ### Backend
 - **Auth Controllers**: Secure handling of login, registration, and token management.
@@ -40,5 +41,3 @@ This push focus on the following core components:
 3. Configure your `.env` files.
 4. Run the development environment using `npm run dev`.
 
----
-*Built with ❤️ for sports enthusiasts.*
