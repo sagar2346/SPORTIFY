@@ -42,6 +42,8 @@ export const authService = {
   getMe: () => api.get('/auth/me'),
   updateDetails: (data) => api.put('/auth/updatedetails', data),
   updatePassword: (data) => api.put('/auth/updatepassword', data),
+  forgotPassword: (email) => api.post('/auth/forgotpassword', { email }),
+  resetPassword: (token, password) => api.put(`/auth/resetpassword/${token}`, { password }),
 };
 
 // User services
@@ -221,6 +223,13 @@ export const kycService = {
   uploadDocument: (formData) => api.post('/kyc/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
+};
+
+export const footageService = {
+  upload: (data) => api.post('/footage', data),
+  getAll: () => api.get('/footage'),
+  query: (id, question) => api.post(`/footage/${id}/query`, { question }),
+  delete: (id) => api.delete(`/footage/${id}`),
 };
 
 export default api;

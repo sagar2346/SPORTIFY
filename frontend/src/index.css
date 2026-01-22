@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-white text-slate-700 antialiased;
+    min-height: 100vh;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply text-primary-600 tracking-tight font-bold;
+  }
+}
+
+@layer components {
+
+  /* Modern Professional Card */
+  .glass {
+    @apply bg-white/80 backdrop-blur-md border border-slate-200 shadow-xl rounded-2xl;
+  }
+
+  /* Premium Card */
+  .card {
+    @apply bg-white border border-slate-100 shadow-md rounded-2xl p-6 transition-all duration-300;
+  }
+
+  .card:hover {
+    @apply shadow-lg transform -translate-y-1 border-sky-500/20;
+  }
+
+  /* Premium Buttons */
+  .btn {
+    @apply px-6 py-3 rounded-xl font-bold text-sm tracking-wide transition-all duration-300 shadow-sm flex items-center justify-center gap-2 transform active:scale-95;
+  }
+
+  .btn-primary {
+    @apply bg-primary-600 text-white hover:bg-primary-700 hover:shadow-primary-500/20 border border-transparent;
+  }
+
+  .btn-secondary {
+    @apply bg-slate-100 text-primary-600 border border-slate-200 hover:bg-slate-200 shadow-none hover:shadow-md;
+  }
+
+  .btn-outline {
+    @apply bg-transparent text-sky-600 border border-sky-600 hover:bg-sky-50 shadow-none;
+  }
+
+  /* Inputs */
+  .input {
+    @apply w-full px-5 py-3.5 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 outline-none transition-all duration-200;
+  }
+
+  .input:focus {
+    @apply border-primary-500 ring-4 ring-primary-500/10;
+  }
+
+  /* Animations */
+  .animate-fade-in {
+    animation: fadeIn 0.8s ease-out forwards;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.8s ease-out forwards;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

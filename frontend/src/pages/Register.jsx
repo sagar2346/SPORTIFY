@@ -10,6 +10,7 @@ const Register = () => {
     confirmPassword: '',
     role: 'customer',
     phone: '',
+    referralCode: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -220,6 +221,23 @@ const Register = () => {
                   className="input"
                   placeholder="••••••••"
                   value={formData.confirmPassword}
+                  onChange={handleChange}
+                />
+              </div>
+
+              {/* Referral Code */}
+              <div className="col-span-2">
+                <label htmlFor="referralCode" className="block text-sm font-medium text-gray-700 mb-1">
+                  Referral Code (Optional)
+                </label>
+                <input
+                  id="referralCode"
+                  name="referralCode"
+                  type="text"
+                  autoComplete="off"
+                  className="input"
+                  placeholder="e.g. SPORT-123456"
+                  value={formData.referralCode}
                   onChange={handleChange}
                 />
               </div>
