@@ -22,11 +22,13 @@ This push focus on the following core components:
 ### Frontend
 - **Login & Registration**: User-friendly authentication portal with role-based access.
 - **About Us**: Professional company overview and team showcase.
+- **Admin Dashboard**: Comprehensive management interface for platform oversight.
 - **Auth Context**: Global state management for user authentication.
 - 
 
 ### Backend
 - **Auth Controllers**: Secure handling of login, registration, and token management.
+- **Admin Controllers**: Logic for revenue reporting, user management, and verification.
 - **User Models**: Comprehensive schema with role-based permissions and profile details.
 
 ## 🛠️ Tech Stack
