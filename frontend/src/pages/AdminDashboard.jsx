@@ -1,3 +1,4 @@
+// Admin Dashboard Component for SPORTIFY Platform
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { adminService, bookingService, venueService } from '../services/api';

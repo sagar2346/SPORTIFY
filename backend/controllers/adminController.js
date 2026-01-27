@@ -1,3 +1,4 @@
+// Admin Controller for SPORTIFY Backend
 const User = require('../models/User');
 const Venue = require('../models/Venue');
 const Booking = require('../models/Booking');
