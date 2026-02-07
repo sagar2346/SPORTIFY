@@ -1,3 +1,4 @@
+// Venue Form Component for SPORTIFY
 import { useState, useEffect } from 'react';
 import { FiUpload, FiX } from 'react-icons/fi';
 import LocationPickerMap from './LocationPickerMap';

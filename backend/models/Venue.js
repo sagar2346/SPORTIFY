@@ -1,3 +1,4 @@
+// Venue Model for SPORTIFY
 const mongoose = require('mongoose');
 
 function arrayLimit(val) {

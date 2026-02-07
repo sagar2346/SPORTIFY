@@ -1,3 +1,4 @@
+// Venue Controller for SPORTIFY
 const Venue = require('../models/Venue');
 const Booking = require('../models/Booking');
 const Review = require('../models/Review');
