@@ -27,7 +27,10 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Prevent global 401 redirect for login/register routes so components can handle errors
+    const isAuthRoute = error.config?.url?.includes('/auth/login') || error.config?.url?.includes('/auth/register');
+
+    if (error.response?.status === 401 && !isAuthRoute) {
       localStorage.removeItem('token');
       window.location.href = '/login';
     }
@@ -229,7 +232,21 @@ export const footageService = {
   upload: (data) => api.post('/footage', data),
   getAll: () => api.get('/footage'),
   query: (id, question) => api.post(`/footage/${id}/query`, { question }),
+  getSummary: (id) => api.get(`/footage/${id}/summary`),
+  exportReport: (id, aiSummary) => api.post(`/footage/${id}/export`, { aiSummary }, {
+    responseType: 'blob'
+  }),
   delete: (id) => api.delete(`/footage/${id}`),
+};
+
+// Tournament services
+export const tournamentService = {
+  getTournaments: () => api.get('/tournaments'),
+  getTournament: (id) => api.get(`/tournaments/${id}`),
+  createTournament: (data) => api.post('/tournaments', data),
+  updateTournament: (id, data) => api.put(`/tournaments/${id}`, data),
+  deleteTournament: (id) => api.delete(`/tournaments/${id}`),
+  registerTeam: (id, teamId) => api.post(`/tournaments/${id}/register`, { teamId }),
 };
 
 export default api;

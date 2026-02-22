@@ -34,6 +34,10 @@ import DiscountCodes from './pages/DiscountCodes';
 import TeamChat from './pages/customer/TeamChat';
 import MessageFriends from './pages/customer/MessageFriends';
 import AnalyticsBoard from './pages/customer/AnalyticsBoard';
+import CreateTournament from './pages/admin/CreateTournament';
+import EditTournament from './pages/admin/EditTournament';
+import Tournaments from './pages/Tournaments';
+import TournamentDetail from './pages/TournamentDetail';
 
 // Components
 import Navbar from './components/layout/Navbar';
@@ -83,6 +87,8 @@ function App() {
           <Route path="/faq" element={<FAQ />} />
           <Route path="/sports" element={<SportsSelection />} />
           <Route path="/sports/:sportType" element={<SportBooking />} />
+          <Route path="/tournaments" element={<Tournaments />} />
+          <Route path="/tournaments/:id" element={<TournamentDetail />} />
 
           <Route
             path="/dashboard"
@@ -201,6 +207,22 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <DiscountCodes />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/tournaments/create"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <CreateTournament />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/tournaments/edit/:id"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <EditTournament />
               </ProtectedRoute>
             }
           />

@@ -9,6 +9,12 @@ const { Server } = require('socket.io'); // Import Socket.IO
 // Load environment variables
 dotenv.config();
 
+const fs = require('fs');
+const logFile = fs.createWriteStream(path.join(__dirname, 'server_debug.log'), { flags: 'a' });
+console.log = (...args) => logFile.write('LOG: ' + args.join(' ') + '\n');
+console.error = (...args) => logFile.write('ERROR: ' + args.join(' ') + '\n');
+console.warn = (...args) => logFile.write('WARN: ' + args.join(' ') + '\n');
+
 // Import routes
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
@@ -47,10 +53,10 @@ const connectDB = async () => {
     console.log(`Attempting to connect to MongoDB...`);
 
     const conn = await mongoose.connect(connString);
-    console.log(`✅ MongoDB connected successfully: ${conn.connection.host}`);
+    console.log(`MongoDB connected successfully: ${conn.connection.host}`);
   } catch (err) {
-    console.error('❌ MongoDB connection error:', err.message);
-    console.log('💡 Tip: Make sure MongoDB is running locally (mongod) or check your connection string.');
+    console.error('MongoDB connection error:', err.message);
+    console.log('Tip: Make sure MongoDB is running locally (mongod) or check your connection string.');
     // Do not exit process, let it retry or stay up without DB
   }
 };
@@ -138,6 +144,7 @@ app.use('/api/teams', teamRoutes);
 app.use('/api/kyc', kycRoutes);
 app.use('/api/footage', footageRoutes);
 app.use('/api/ai', require('./routes/ai'));
+app.use('/api/tournaments', require('./routes/tournaments'));
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -156,18 +163,18 @@ const PORT = process.env.PORT || 5001;
 
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
-    console.error(`❌ Port ${PORT} is already in use.`);
+    console.error(`Port ${PORT} is already in use.`);
     process.exit(1);
   } else if (err.code === 'EACCES') {
-    console.error(`❌ Permission denied for port ${PORT}. (On Windows, ports like 5000 are often restricted)`);
+    console.error(`Permission denied for port ${PORT}. (On Windows, ports like 5000 are often restricted)`);
     process.exit(1);
   } else {
-    console.error('❌ Server error:', err);
+    console.error('Server error:', err);
   }
 });
 
 server.listen(PORT, () => {
-  console.log(`🚀 Server connected to socket running on port ${PORT}`);
-  console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Server connected to socket running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 

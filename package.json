@@ -11,12 +11,19 @@
     "install-client": "cd frontend && npm install",
     "install-all": "npm run install-server && npm run install-client"
   },
-  "keywords": ["mern", "sports", "booking", "venue"],
+  "keywords": [
+    "mern",
+    "sports",
+    "booking",
+    "venue"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2",
     "nodemon": "^3.0.2"
+  },
+  "dependencies": {
+    "@google/genai": "^1.42.0"
   }
 }
-

@@ -45,6 +45,7 @@ const Navbar = () => {
           <>
             <Link to="/about" className={linkClass} onClick={() => isMobile && setMobileMenuOpen(false)}>About</Link>
             <Link to="/contact" className={linkClass} onClick={() => isMobile && setMobileMenuOpen(false)}>Contact</Link>
+            <Link to="/tournaments" className={linkClass} onClick={() => isMobile && setMobileMenuOpen(false)}>Tournaments</Link>
           </>
         )}
       </>
@@ -87,6 +88,7 @@ const Navbar = () => {
             <Link to="/admin/dashboard" className={linkClass} onClick={() => isMobile && setMobileMenuOpen(false)}>Admin Dashboard</Link>
             <Link to="/venues" className={linkClass} onClick={() => isMobile && setMobileMenuOpen(false)}>View Available Venue</Link>
             <Link to="/admin/users" className={linkClass} onClick={() => isMobile && setMobileMenuOpen(false)}>Manage Users</Link>
+            <Link to="/admin/tournaments/create" className={linkClass} onClick={() => isMobile && setMobileMenuOpen(false)}>Create Tournament</Link>
           </>
         )}
       </>

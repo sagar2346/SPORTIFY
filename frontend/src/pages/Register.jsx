@@ -264,10 +264,6 @@ const Register = () => {
         </div>
       </div>
 
-      {/* Footer copyright */}
-      <div className="absolute bottom-4 text-center text-gray-500 text-xs">
-        &copy; 2024 Sportify System. All rights reserved.
-      </div>
     </div>
   );
 };

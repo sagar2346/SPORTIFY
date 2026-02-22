@@ -43,9 +43,9 @@ exports.sendBookingConfirmation = async (booking) => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log('✅ Booking confirmation email sent');
+    console.log('Booking confirmation email sent');
   } catch (error) {
-    console.error('❌ Error sending email:', error);
+    console.error('Error sending email:', error);
   }
 };
 
@@ -78,9 +78,9 @@ exports.sendBookingCancellation = async (booking) => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log('✅ Cancellation email sent');
+    console.log('Cancellation email sent');
   } catch (error) {
-    console.error('❌ Error sending email:', error);
+    console.error('Error sending email:', error);
   }
 };
 
@@ -106,9 +106,9 @@ exports.sendPasswordReset = async (user, resetToken) => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log('✅ Password reset email sent');
+    console.log('Password reset email sent');
   } catch (error) {
-    console.error('❌ Error sending email:', error);
+    console.error('Error sending email:', error);
   }
 };
 
@@ -142,9 +142,9 @@ exports.sendReplyToMessage = async (message, replyText) => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log(`✅ Reply email sent to ${message.email}`);
+    console.log(`Reply email sent to ${message.email}`);
   } catch (error) {
-    console.error('❌ Error sending reply email:', error);
+    console.error('Error sending reply email:', error);
   }
 };
 
@@ -173,9 +173,9 @@ exports.sendAdminNewMessageNotification = async (message) => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log(`✅ Admin notification sent to ${adminEmail}`);
+    console.log(`Admin notification sent to ${adminEmail}`);
   } catch (error) {
-    console.error('❌ Error sending admin notification:', error);
+    console.error('Error sending admin notification:', error);
   }
 };
 
@@ -203,9 +203,9 @@ exports.sendFriendMessage = async (sender, recipientEmail, subject, message) => 
     };
 
     await transporter.sendMail(mailOptions);
-    console.log(`✅ Friend message sent to ${recipientEmail}`);
+    console.log(`Friend message sent to ${recipientEmail}`);
   } catch (error) {
-    console.error('❌ Error sending friend message:', error);
+    console.error('Error sending friend message:', error);
     throw error; // Re-throw to handle in controller
   }
 };

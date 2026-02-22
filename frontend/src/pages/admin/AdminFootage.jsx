@@ -47,12 +47,14 @@ const AdminFootage = () => {
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this footage?')) return;
 
+        const toastId = toast.loading('Deleting footage...');
         try {
             await footageService.delete(id);
-            toast.success('Footage deleted successfully');
-            setFootageList(footageList.filter(f => f._id !== id));
+            toast.success('Footage deleted successfully', { id: toastId });
+            setFootageList(prev => prev.filter(f => f._id !== id));
         } catch (error) {
-            toast.error('Failed to delete footage');
+            console.error('Delete error:', error);
+            toast.error(error.response?.data?.message || 'Failed to delete footage', { id: toastId });
         }
     };
 

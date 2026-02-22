@@ -8,7 +8,7 @@ const run = async () => {
             password: 'password123'
         });
         const token = loginRes.data.token;
-        console.log('✅ Admin Logged In');
+        console.log('Admin Logged In');
 
         // 2. Reply to Message
         // ID from previous step: 694115b89492b2264d340f03
@@ -23,7 +23,7 @@ const run = async () => {
         const targetMsg = msgsRes.data.find(m => m.email === 'notify_test@example.com' && !m.reply);
 
         if (!targetMsg) {
-            console.log('❌ No unreplied message found for notify_test@example.com');
+            console.log('No unreplied message found for notify_test@example.com');
             return;
         }
 
@@ -35,10 +35,10 @@ const run = async () => {
             headers: { Authorization: `Bearer ${token}` }
         });
 
-        console.log('✅ Reply Sent');
+        console.log('Reply Sent');
 
     } catch (error) {
-        console.error('❌ Error:', error.response?.data || error.message);
+        console.error('Error:', error.response?.data || error.message);
     }
 };
 

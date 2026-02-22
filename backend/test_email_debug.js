@@ -19,9 +19,9 @@ console.log(`Pass: ${pass} (length: ${process.env.EMAIL_PASS ? process.env.EMAIL
 
 transporter.verify(function (error, success) {
     if (error) {
-        console.error('❌ Configuration Error:', error);
+        console.error('Configuration Error:', error);
     } else {
-        console.log('✅ Server is ready to take our messages');
+        console.log('Server is ready to take our messages');
 
         // Try sending a test email
         transporter.sendMail({
@@ -30,9 +30,9 @@ transporter.verify(function (error, success) {
             subject: 'Test Email from Debug Script',
             text: 'If you see this, your email configuration is working!',
         }).then(info => {
-            console.log('✅ Test email sent:', info.messageId);
+            console.log('Test email sent:', info.messageId);
         }).catch(err => {
-            console.error('❌ Send Error:', err);
+            console.error('Send Error:', err);
         });
     }
 });

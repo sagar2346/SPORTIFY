@@ -3,10 +3,11 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { adminService, bookingService, venueService } from '../services/api';
 import toast from 'react-hot-toast';
-import { FiUsers, FiMapPin, FiCalendar, FiDollarSign, FiMail, FiGrid, FiTrash2, FiCheck, FiVideo } from 'react-icons/fi';
 import CustomerMessages from './admin/CustomerMessages';
 import KycVerificationRequests from './admin/KycVerificationRequests';
 import AdminFootage from './admin/AdminFootage';
+import ManageTournaments from './admin/ManageTournaments';
+import { FiUsers, FiMapPin, FiCalendar, FiDollarSign, FiMail, FiGrid, FiTrash2, FiCheck, FiVideo, FiAward } from 'react-icons/fi';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -387,6 +388,14 @@ const AdminDashboard = () => {
             <FiVideo className="mr-3 h-5 w-5" />
             Game Footage Analysis
           </button>
+          <button
+            onClick={() => setActiveTab('tournaments')}
+            className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${activeTab === 'tournaments' ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'
+              }`}
+          >
+            <FiAward className="mr-3 h-5 w-5" />
+            Manage Tournaments
+          </button>
           <Link to="/admin/users" className="w-full flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md">
             <FiUsers className="mr-3 h-5 w-5" />
             Manage Users
@@ -409,6 +418,7 @@ const AdminDashboard = () => {
           {activeTab === 'messages' && <CustomerMessages />}
           {activeTab === 'kyc' && <KycVerificationRequests />}
           {activeTab === 'footage' && <AdminFootage />}
+          {activeTab === 'tournaments' && <ManageTournaments />}
         </div>
       </div>
     </div >

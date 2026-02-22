@@ -8,7 +8,7 @@ const createAdmin = async () => {
     try {
         const connString = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/sport-booking';
         await mongoose.connect(connString);
-        console.log('✅ DB Connected');
+        console.log('DB Connected');
 
         // Check if user exists
         const email = 'xyz@gmail.com';
@@ -21,7 +21,7 @@ const createAdmin = async () => {
             exists.isApproved = true;
             exists.status = 'approved';
             await exists.save();
-            console.log('✅ Admin updated: xyz@gmail.com / admin123');
+            console.log('Admin updated: xyz@gmail.com / admin123');
         } else {
             await User.create({
                 name: 'Debug Admin',
@@ -31,11 +31,11 @@ const createAdmin = async () => {
                 isApproved: true,
                 status: 'approved'
             });
-            console.log('✅ Admin created: debug_admin@example.com / password123');
+            console.log('Admin created: debug_admin@example.com / password123');
         }
 
     } catch (error) {
-        console.error('❌ Error:', error);
+        console.error('Error:', error);
     } finally {
         await mongoose.connection.close();
         process.exit();

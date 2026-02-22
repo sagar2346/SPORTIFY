@@ -93,7 +93,7 @@ exports.login = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'No such credentials', // User not found
+        message: 'no such credential', // User not found
       });
     }
 

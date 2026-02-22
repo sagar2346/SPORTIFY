@@ -9,7 +9,7 @@ const runTest = async () => {
     try {
         const connString = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/sport-booking';
         await mongoose.connect(connString);
-        console.log('✅ DB Connected');
+        console.log('DB Connected');
 
         // 1. Create/Update Test Customer
         const email = 'notify_test@example.com';
@@ -22,7 +22,7 @@ const runTest = async () => {
                 password: 'password123',
                 role: 'customer'
             });
-            console.log('✅ Customer created: notify_test@example.com');
+            console.log('Customer created: notify_test@example.com');
         } else {
             user.password = 'password123';
             await user.save();
@@ -31,7 +31,7 @@ const runTest = async () => {
 
         // 2. Clear previous messages from this user
         await Message.deleteMany({ email: email });
-        console.log('✅ Cleared old messages');
+        console.log('Cleared old messages');
 
         // 3. Create a new message
         const message = await Message.create({
@@ -41,7 +41,7 @@ const runTest = async () => {
             subject: 'Notification Test',
             message: 'Waiting for reply...'
         });
-        console.log('✅ Message created');
+        console.log('Message created');
 
         // 4. Simulate Admin Reply (Invoking the logic directly to verify model update)
         // Note: In real app, we hit the API. Here we can simulate the DB update part to check schema
@@ -52,7 +52,7 @@ const runTest = async () => {
         console.log(`Message ID: ${message._id}`);
 
     } catch (error) {
-        console.error('❌ Error:', error);
+        console.error('Error:', error);
     } finally {
         await mongoose.connection.close();
         process.exit();
