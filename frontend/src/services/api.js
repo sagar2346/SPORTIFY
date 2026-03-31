@@ -128,6 +128,7 @@ export const bookingService = {
   deleteBooking: (id) => api.delete(`/bookings/${id}`),
   rescheduleBooking: (id, data) => api.put(`/bookings/${id}/reschedule`, data),
   requestPaymentVerification: (id, method) => api.put(`/bookings/${id}/verify-payment`, { method }),
+  downloadTicket: (id) => api.get(`/bookings/${id}/download`, { responseType: 'blob' }),
 };
 
 // Payment services
@@ -135,6 +136,9 @@ export const paymentService = {
   createPaymentIntent: (bookingId) =>
     api.post('/payments/create-intent', { bookingId }),
   getPaymentStatus: (bookingId) => api.get(`/payments/status/${bookingId}`),
+  initiateEsewaPayment: (bookingId) => api.post('/payments/esewa/initiate', { bookingId }),
+  initiateEsewaFinePayment: (teamId) => api.post('/payments/esewa/initiate-fine', { teamId }),
+  verifyEsewaPayment: (data) => api.post('/payments/esewa/verify', { data }),
 };
 
 // Review services
@@ -185,6 +189,8 @@ export const adminService = {
   getOwnerRevenues: () => api.get('/admin/revenue-by-owner'),
   getPendingKyc: () => api.get('/admin/kyc/pending'),
   updateKycStatus: (userId, data) => api.put(`/admin/kyc/${userId}/status`, data),
+  getTeams: () => api.get('/admin/teams'),
+  updateTeamBlockStatus: (id, data) => api.put(`/admin/teams/${id}/block-status`, data),
 };
 
 // Inventory services
@@ -209,6 +215,13 @@ export const teamService = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
+  addAdminToTeam: (teamId, email) => api.post(`/teams/${teamId}/add-admin`, { email }),
+  leaveTeam: (teamId) => api.post(`/teams/${teamId}/leave`),
+  kickMember: (teamId, userId) => api.post(`/teams/${teamId}/kick/${userId}`),
+  payFine: (teamId) => api.post(`/teams/${teamId}/pay-fine`),
+  requestFinePaymentVerification: (teamId, paymentMethod) => api.post(`/teams/${teamId}/request-payment-verification`, { paymentMethod }),
+  deleteMessage: (messageId) => api.delete(`/teams/messages/${messageId}`),
+  deleteTeam: (id) => api.delete(`/teams/${id}`),
 };
 
 // Message services
@@ -230,7 +243,11 @@ export const kycService = {
 
 export const footageService = {
   upload: (data) => api.post('/footage', data),
-  getAll: () => api.get('/footage'),
+  getAll: (teamId = null) => {
+    const url = teamId ? `/footage?teamId=${teamId}` : '/footage';
+    return api.get(url);
+  },
+  get: (id) => api.get(`/footage/${id}`),
   query: (id, question) => api.post(`/footage/${id}/query`, { question }),
   getSummary: (id) => api.get(`/footage/${id}/summary`),
   exportReport: (id, aiSummary) => api.post(`/footage/${id}/export`, { aiSummary }, {
@@ -247,6 +264,18 @@ export const tournamentService = {
   updateTournament: (id, data) => api.put(`/tournaments/${id}`, data),
   deleteTournament: (id) => api.delete(`/tournaments/${id}`),
   registerTeam: (id, teamId) => api.post(`/tournaments/${id}/register`, { teamId }),
+};
+
+export const analysisRequestService = {
+  create: (data) => api.post('/analysis-requests', data),
+  getByTeam: (teamId) => api.get(`/analysis-requests/team/${teamId}`),
+  update: (id, data) => api.put(`/analysis-requests/${id}`, data),
+};
+export const aiService = {
+  getVenueSummary: (venueId) => api.get(`/ai/venue-summary/${venueId}`),
+  getChatReply: (message) => api.post('/ai/chat', { message }),
+  getRecommendations: () => api.get('/ai/recommend'),
+  getInsights: () => api.get('/ai/insight'),
 };
 
 export default api;

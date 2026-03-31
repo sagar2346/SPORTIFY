@@ -1,5 +1,5 @@
 const express = require('express');
-const { chat, getRecommendations, getInsights } = require('../controllers/aiController');
+const { chat, getRecommendations, getInsights, getVenueReviewSummary } = require('../controllers/aiController');
 const { protect, authorize, optionalProtect } = require('../middleware/auth');
 
 const router = express.Router();
@@ -10,5 +10,6 @@ router.post('/chat', optionalProtect, chat);
 // Protected Routes
 router.get('/recommend', protect, getRecommendations);
 router.get('/insight', protect, authorize('admin', 'venue_owner'), getInsights);
+router.get('/venue-summary/:venueId', optionalProtect, getVenueReviewSummary);
 
 module.exports = router;

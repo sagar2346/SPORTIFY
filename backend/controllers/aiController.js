@@ -1,7 +1,8 @@
 const Booking = require('../models/Booking');
 const Venue = require('../models/Venue');
 const User = require('../models/User');
-const { generateGeneralChat } = require('../utils/gemini');
+const Review = require('../models/Review');
+const { generateGeneralChat, generateVenueReviewSummary } = require('../utils/gemini');
 
 exports.chat = async (req, res, next) => {
     try {
@@ -21,7 +22,7 @@ exports.chat = async (req, res, next) => {
         // 2. Check for "My Bookings" context
         if (req.user && (p.includes('my') || p.includes('booking') || p.includes('history'))) {
             const bookings = await Booking.find({ user: req.user.id }).sort('-createdAt').limit(3).populate('venue', 'name');
-            historyContext = bookings.map(b => `${b.venue.name} on ${new Date(b.date).toLocaleDateString()}`).join(', ');
+            historyContext = bookings.filter(b => b.venue).map(b => `${b.venue.name} on ${new Date(b.date).toLocaleDateString()}`).join(', ');
         }
 
         // 3. Call real Gemini AI
@@ -45,8 +46,10 @@ exports.getRecommendations = async (req, res, next) => {
         // Simple logic: Find most booked sport
         const sportCounts = {};
         bookings.forEach(b => {
-            const sport = b.venue.sportType;
-            sportCounts[sport] = (sportCounts[sport] || 0) + 1;
+            if (b.venue) {
+                const sport = b.venue.sportType;
+                sportCounts[sport] = (sportCounts[sport] || 0) + 1;
+            }
         });
 
         const topSports = Object.entries(sportCounts).sort((a, b) => b[1] - a[1]).map(e => e[0]);
@@ -83,6 +86,28 @@ exports.getInsights = async (req, res, next) => {
         }
 
         res.status(200).json({ success: true, insight });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.getVenueReviewSummary = async (req, res, next) => {
+    try {
+        const { venueId } = req.params;
+        const reviews = await Review.find({ venue: venueId });
+        
+        if (!reviews || reviews.length === 0) {
+            return res.status(200).json({ 
+                success: true, 
+                summary: "No reviews available yet for this venue to summarize." 
+            });
+        }
+
+        const reviewsText = reviews.map(r => `Rating: ${r.rating}/5. Comment: ${r.comment}`).join('\n\n');
+        
+        const summary = await generateVenueReviewSummary(reviewsText);
+
+        res.status(200).json({ success: true, summary });
     } catch (error) {
         next(error);
     }

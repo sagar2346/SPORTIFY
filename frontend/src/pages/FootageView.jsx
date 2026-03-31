@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { footageService } from '../services/api';
 import toast from 'react-hot-toast';
+import ReactMarkdown from 'react-markdown';
 import { FiArrowLeft, FiVideo, FiActivity, FiInfo, FiRefreshCw, FiDownload } from 'react-icons/fi';
 
 const FootageView = () => {
@@ -27,11 +28,15 @@ const FootageView = () => {
 
     const loadFootage = async () => {
         try {
-            const response = await footageService.getAll();
-            const current = response.data.data.find(f => f._id === id);
-            setFootage(current);
+            const response = await footageService.get(id);
+            setFootage(response.data.data);
         } catch (error) {
-            toast.error('Failed to load footage details');
+            console.error('Fetch error:', error);
+            if (error.response?.status === 403) {
+                toast.error('Access denied: This footage is private to team members.');
+            } else {
+                toast.error('Failed to load footage details');
+            }
         } finally {
             setLoading(false);
         }
@@ -104,6 +109,7 @@ const FootageView = () => {
             if (playerRef.current) return;
 
             playerRef.current = new window.YT.Player('youtube-player', {
+                host: 'https://www.youtube-nocookie.com',
                 videoId: videoId,
                 playerVars: {
                     rel: 0,
@@ -240,12 +246,17 @@ const FootageView = () => {
                             {!aiSummary ? (
                                 <button
                                     onClick={generateAiSummary}
-                                    disabled={summarizing}
-                                    className="btn btn-primary w-full flex items-center justify-center py-3 text-sm font-bold relative z-10"
+                                    disabled={summarizing || footage.teamInfo?.isBlocked}
+                                    className={`btn btn-primary w-full flex items-center justify-center py-3 text-sm font-bold relative z-10 ${footage.teamInfo?.isBlocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    title={footage.teamInfo?.isBlocked ? 'AI features restricted for blocked teams' : ''}
                                 >
                                     {summarizing ? (
                                         <>
                                             <FiRefreshCw className="mr-2 animate-spin" /> Analyzing Footage...
+                                        </>
+                                    ) : footage.teamInfo?.isBlocked ? (
+                                        <>
+                                            <FiActivity className="mr-2" /> AI Restricted
                                         </>
                                     ) : (
                                         <>
@@ -255,33 +266,14 @@ const FootageView = () => {
                                 </button>
                             ) : (
                                 <div className="space-y-4 relative z-10">
-                                    <div className="bg-white/80 rounded-lg p-5 shadow-sm border border-emerald-100">
-                                        <div className="space-y-3">
-                                            {aiSummary.split('\n').filter(line => line.trim().length > 0).map((line, index) => {
-                                                const cleanLine = line.replace(/[*_]/g, '').trim();
-                                                const isListItem = /^[•*-]\s*/.test(line.trim());
-
-                                                if (isListItem) {
-                                                    return (
-                                                        <div key={index} className="flex items-start text-sm text-gray-700 ml-2">
-                                                            <span className="text-emerald-500 mr-2 font-bold mt-0.5">•</span>
-                                                            <span>{cleanLine.replace(/^[•*-]\s*/, '').trim()}</span>
-                                                        </div>
-                                                    );
-                                                }
-                                                return (
-                                                    <p key={index} className="text-sm text-gray-800 leading-relaxed">
-                                                        {cleanLine}
-                                                    </p>
-                                                );
-                                            })}
-                                        </div>
+                                    <div className="bg-white/80 backdrop-blur rounded-lg p-5 shadow-sm border border-emerald-100 prose prose-sm prose-emerald max-w-none">
+                                        <ReactMarkdown>{aiSummary}</ReactMarkdown>
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <button
                                             onClick={generateAiSummary}
-                                            disabled={summarizing}
-                                            className="text-xs text-emerald-600 hover:text-emerald-700 font-bold flex items-center underline"
+                                            disabled={summarizing || footage.teamInfo?.isBlocked}
+                                            className={`text-xs text-emerald-600 hover:text-emerald-700 font-bold flex items-center underline ${footage.teamInfo?.isBlocked ? 'opacity-30 cursor-not-allowed' : ''}`}
                                         >
                                             <FiRefreshCw className={`mr-1 ${summarizing ? 'animate-spin' : ''}`} /> Refresh Analysis
                                         </button>
@@ -297,7 +289,7 @@ const FootageView = () => {
                         </div>
 
                         {/* AI Tactical Assistant (Chat) */}
-                        <div className="card border-primary-100 border-2 flex flex-col h-[500px]">
+                        <div className="card border-primary-100 border-2 flex flex-col h-[500px] bg-white">
                             <h3 className="font-bold text-gray-900 mb-4 flex items-center">
                                 <FiActivity className="mr-2 text-primary-600" /> AI Tactical Assistant
                             </h3>
@@ -317,7 +309,9 @@ const FootageView = () => {
                                                     ? 'bg-red-50 text-red-600 border border-red-100'
                                                     : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'
                                                 }`}>
-                                                {msg.content}
+                                                <div className={msg.role === 'ai' || msg.role === 'bot' ? 'prose prose-sm prose-slate max-w-none break-words' : 'break-words'}>
+                                                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                                                </div>
                                             </div>
                                         </div>
                                     ))
@@ -337,15 +331,15 @@ const FootageView = () => {
                             <form onSubmit={handleQuery} className="relative">
                                 <input
                                     type="text"
-                                    className="input pr-12 text-sm focus:ring-primary-500"
-                                    placeholder="Ask about the game..."
+                                    className={`input pr-12 text-sm focus:ring-primary-500 border-gray-200 bg-white text-gray-900 ${footage.teamInfo?.isBlocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    placeholder={footage.teamInfo?.isBlocked ? "AI Features Restricted..." : "Ask about the game..."}
                                     value={userQuestion}
                                     onChange={(e) => setUserQuestion(e.target.value)}
-                                    disabled={querying}
+                                    disabled={querying || footage.teamInfo?.isBlocked}
                                 />
                                 <button
                                     type="submit"
-                                    disabled={!userQuestion.trim() || querying}
+                                    disabled={!userQuestion.trim() || querying || footage.teamInfo?.isBlocked}
                                     className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-primary-600 hover:text-primary-700 disabled:opacity-30 transition-all"
                                 >
                                     <FiActivity />

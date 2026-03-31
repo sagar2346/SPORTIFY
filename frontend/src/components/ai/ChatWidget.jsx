@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import axios from 'axios';
+import { aiService } from '../../services/api';
 import { FiMessageSquare, FiX, FiSend, FiCpu } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import ReactMarkdown from 'react-markdown';
 
-const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 const ChatWidget = () => {
     const { user } = useAuth();
@@ -36,24 +36,13 @@ const ChatWidget = () => {
 
         setLoading(true);
         try {
-            let endpoint = '';
-            let promptText = '';
-
             if (user.role === 'customer') {
-                endpoint = '/ai/recommend';
-                const token = localStorage.getItem('token');
-                const res = await axios.get(`${API_URL}${endpoint}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const res = await aiService.getRecommendations();
                 if (res.data.success) {
                     setMessages(prev => [...prev, { type: 'bot', text: res.data.recommendation }]);
                 }
             } else if (user.role === 'admin' || user.role === 'venue_owner') {
-                endpoint = '/ai/insight';
-                const token = localStorage.getItem('token');
-                const res = await axios.get(`${API_URL}${endpoint}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const res = await aiService.getInsights();
                 if (res.data.success) {
                     setMessages(prev => [...prev, { type: 'bot', text: res.data.insight }]);
                 }
@@ -74,12 +63,8 @@ const ChatWidget = () => {
         setMessages(prev => [...prev, { type: 'user', text: userMsg }]);
         setInput('');
         setLoading(true);
-
         try {
-            const token = localStorage.getItem('token');
-            const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-            const res = await axios.post(`${API_URL}/ai/chat`, { message: userMsg }, { headers });
+            const res = await aiService.getChatReply(userMsg);
 
             if (res.data.success) {
                 setMessages(prev => [...prev, { type: 'bot', text: res.data.reply }]);
@@ -98,7 +83,7 @@ const ChatWidget = () => {
             {!isOpen && (
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="bg-primary-600 hover:bg-primary-700 text-white rounded-full p-4 shadow-lg transition-transform hover:scale-110 flex items-center justify-center"
+                    className="bg-primary-600 hover:bg-primary-700 text-white rounded-full p-4 shadow-xl transition-all hover:scale-110 flex items-center justify-center border-2 border-white/20"
                     aria-label="Open AI Chat"
                 >
                     <FiCpu className="w-8 h-8" />
@@ -115,8 +100,8 @@ const ChatWidget = () => {
                                 <FiCpu className="w-5 h-5" />
                             </div>
                             <div>
-                                <h3 className="font-bold text-sm">Sportify Assistant</h3>
-                                <p className="text-xs text-primary-100">
+                                <h3 className="font-bold text-sm text-white">Sportify Assistant</h3>
+                                <p className="text-xs text-white opacity-90">
                                     {user ? `Hi, ${user.name}` : 'Guest Mode'}
                                 </p>
                             </div>
@@ -140,7 +125,9 @@ const ChatWidget = () => {
                                     ? 'bg-primary-600 text-white rounded-br-none'
                                     : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
                                     }`}>
-                                    {msg.text}
+                                    <div className={msg.type === 'bot' ? 'prose prose-sm prose-slate max-w-none break-words' : ''}>
+                                        <ReactMarkdown>{msg.text}</ReactMarkdown>
+                                    </div>
                                 </div>
                             </div>
                         ))}
