@@ -79,6 +79,7 @@ export const userService = {
   getContacts: () => api.get('/users/contacts'),
   addContact: (data) => api.post('/users/contacts', data),
   sendContactEmail: (data) => api.post('/users/contacts/email', data),
+  redeemLoyaltyPoints: (points) => api.post('/users/redeem-points', { points }),
 };
 
 // Venue services
@@ -129,6 +130,7 @@ export const bookingService = {
   rescheduleBooking: (id, data) => api.put(`/bookings/${id}/reschedule`, data),
   requestPaymentVerification: (id, method) => api.put(`/bookings/${id}/verify-payment`, { method }),
   downloadTicket: (id) => api.get(`/bookings/${id}/download`, { responseType: 'blob' }),
+  payWithWallet: (id) => api.put(`/bookings/${id}/pay-wallet`),
 };
 
 // Payment services
@@ -138,6 +140,7 @@ export const paymentService = {
   getPaymentStatus: (bookingId) => api.get(`/payments/status/${bookingId}`),
   initiateEsewaPayment: (bookingId) => api.post('/payments/esewa/initiate', { bookingId }),
   initiateEsewaFinePayment: (teamId) => api.post('/payments/esewa/initiate-fine', { teamId }),
+  initiateEsewaTournamentPayment: (registrationId) => api.post('/payments/esewa/initiate-tournament', { registrationId }),
   verifyEsewaPayment: (data) => api.post('/payments/esewa/verify', { data }),
 };
 
@@ -260,8 +263,36 @@ export const footageService = {
 export const tournamentService = {
   getTournaments: () => api.get('/tournaments'),
   getTournament: (id) => api.get(`/tournaments/${id}`),
-  createTournament: (data) => api.post('/tournaments', data),
-  updateTournament: (id, data) => api.put(`/tournaments/${id}`, data),
+  createTournament: (data) => {
+    const formData = new FormData();
+    Object.keys(data).forEach((key) => {
+      if (data[key] !== null && data[key] !== undefined) {
+        if (typeof data[key] === 'object' && key === 'location') {
+          formData.append(key, JSON.stringify(data[key]));
+        } else {
+          formData.append(key, data[key]);
+        }
+      }
+    });
+    return api.post('/tournaments', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  updateTournament: (id, data) => {
+    const formData = new FormData();
+    Object.keys(data).forEach((key) => {
+      if (data[key] !== null && data[key] !== undefined) {
+        if (typeof data[key] === 'object' && key === 'location') {
+          formData.append(key, JSON.stringify(data[key]));
+        } else {
+          formData.append(key, data[key]);
+        }
+      }
+    });
+    return api.put(`/tournaments/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
   deleteTournament: (id) => api.delete(`/tournaments/${id}`),
   registerTeam: (id, teamId) => api.post(`/tournaments/${id}/register`, { teamId }),
 };

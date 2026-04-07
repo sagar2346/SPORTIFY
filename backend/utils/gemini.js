@@ -67,9 +67,10 @@ exports.generateSummary = async (title, analysisContext, description) => {
             - Description: ${description}
             
             Instructions:
-            1. If this is sports footage, provide a "Tactical Summary" focusing on performance and strategy.
-            2. If this is NOT sports (e.g., a concert or event), provide a general professional summary of the content. Do NOT invent sports tactics for non-sports videos.
-            3. Format: Use Markdown bullets. Be concise.
+            1. If this is sports footage, provide a "Tactical Summary" focusing on performance and strategy. 
+            2. Do NOT include a main heading like "### Tactical Summary" or "# Summary" as the UI already provides a header. Start directly with the bullet points or analysis.
+            3. If this is NOT sports (e.g., a concert or event), provide a general professional summary of the content. Do NOT invent sports tactics for non-sports videos.
+            4. Format: Use Markdown bullets. Be concise.
         `;
         return await callGeminiRaw('gemini-flash-latest', prompt);
     } catch (error) {

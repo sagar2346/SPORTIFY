@@ -7,13 +7,29 @@ const http = require('http'); // Import HTTP
 const { Server } = require('socket.io'); // Import Socket.IO
 
 // Load environment variables
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const fs = require('fs');
+const User = require('./models/User');
+const Team = require('./models/Team');
 const logFile = fs.createWriteStream(path.join(__dirname, 'server_debug.log'), { flags: 'a' });
-console.log = (...args) => logFile.write('LOG: ' + args.join(' ') + '\n');
-console.error = (...args) => logFile.write('ERROR: ' + args.join(' ') + '\n');
-console.warn = (...args) => logFile.write('WARN: ' + args.join(' ') + '\n');
+const origLog = console.log;
+const origError = console.error;
+const origWarn = console.warn;
+
+console.log = (...args) => {
+  logFile.write('LOG: ' + args.join(' ') + '\n');
+  origLog.apply(console, args);
+};
+console.error = (...args) => {
+  const message = args.map(arg => arg instanceof Error ? arg.stack : arg).join(' ');
+  logFile.write('ERROR: ' + message + '\n');
+  origError.apply(console, args);
+};
+console.warn = (...args) => {
+  logFile.write('WARN: ' + args.join(' ') + '\n');
+  origWarn.apply(console, args);
+};
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -47,21 +63,21 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Database connection
-const connectDB = async () => {
-  try {
-    const connString = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/sport-booking';
-    console.log(`Attempting to connect to MongoDB...`);
+const connectDB = require('./config/database');
 
-    const conn = await mongoose.connect(connString);
-    console.log(`MongoDB connected successfully: ${conn.connection.host}`);
+const startServer = async () => {
+  try {
+    await connectDB();
+
+    // Reset all users to offline on server start
+    await User.updateMany({}, { isOnline: false });
+    console.log('All users reset to offline status');
   } catch (err) {
-    console.error('MongoDB connection error:', err.message);
-    console.log('Tip: Make sure MongoDB is running locally (mongod) or check your connection string.');
-    // Do not exit process, let it retry or stay up without DB
+    console.error('Failed to initialize database related tasks:', err.message);
   }
 };
 
-connectDB();
+startServer();
 
 // Initialize Socket.IO
 const io = new Server(server, {
@@ -76,9 +92,32 @@ const io = new Server(server, {
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
-  socket.on('join_team', (teamId) => {
+  socket.on('user_online', async (userId) => {
+    try {
+      if (userId) {
+        socket.userId = userId;
+        await User.findByIdAndUpdate(userId, { isOnline: true });
+        console.log(`User ${userId} (Socket ${socket.id}) is now online`);
+
+        // Notify all teams this user is in
+        const userTeams = await Team.find({ 'members.user': userId });
+        userTeams.forEach(team => {
+          io.to(team._id.toString()).emit('user_status_change', { userId, isOnline: true });
+        });
+      }
+    } catch (err) {
+      console.error('Error setting user online:', err);
+    }
+  });
+
+  socket.on('join_team', async (teamId) => {
     socket.join(teamId);
     console.log(`User ${socket.id} joined team: ${teamId}`);
+
+    // Proactively send online status of the person who just joined to everyone else in the team
+    if (socket.userId) {
+      io.to(teamId).emit('user_status_change', { userId: socket.userId, isOnline: true });
+    }
   });
 
   socket.on('leave_team', (teamId) => {
@@ -89,20 +128,18 @@ io.on('connection', (socket) => {
   // Import GroupMessage model at the top
   const GroupMessage = require('./models/GroupMessage');
 
-  // ... inside io.current logic
-
   socket.on('send_message', async (data) => {
-    // data should contain { teamId, messageObject }
-    // messageObject from client might lack _id, so we save to DB first to get it.
-
     try {
-      // If it's a text message, save it. Voice messages are already saved via API and then emitted.
-      // If the client sends a full message object (including _id) it means it was already saved (e.g. voice).
-      // If it lacks _id, it's a new text message.
-
       let messageToEmit = data.message;
 
       if (!data.message._id && data.message.type === 'text') {
+        // Check if team is blocked
+        const team = await Team.findById(data.teamId);
+        if (team && team.isBlocked) {
+          socket.emit('error', { message: 'This team is blocked. Messaging is disabled.' });
+          return;
+        }
+
         const newMessage = await GroupMessage.create({
           team: data.teamId,
           sender: data.message.sender,
@@ -114,7 +151,6 @@ io.on('connection', (socket) => {
         messageToEmit = newMessage;
       }
 
-      // Broadcast to everyone in the room
       io.to(data.teamId).emit('receive_message', messageToEmit);
 
     } catch (error) {
@@ -122,8 +158,33 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async () => {
     console.log('User disconnected:', socket.id);
+    const userId = socket.userId;
+    if (userId) {
+      try {
+        // Wait a small bit to see if they reconnect (refresh)
+        setTimeout(async () => {
+          // Check if user has any other active connections
+          const sockets = await io.fetchSockets();
+          const isStillConnected = sockets.some(s => s.userId === userId);
+
+          if (!isStillConnected) {
+            await User.findByIdAndUpdate(userId, { isOnline: false });
+            console.log(`User ${userId} is now offline (no active sockets left)`);
+            // Notify all teams this user is in
+            const userTeams = await Team.find({ 'members.user': userId });
+            userTeams.forEach(team => {
+              io.to(team._id.toString()).emit('user_status_change', { userId, isOnline: false });
+            });
+          } else {
+            console.log(`User ${userId} disconnected from one tab but still online in others`);
+          }
+        }, 2000); // 2 second grace period for refreshes
+      } catch (err) {
+        console.error('Error setting user offline:', err);
+      }
+    }
   });
 });
 
@@ -145,6 +206,7 @@ app.use('/api/kyc', kycRoutes);
 app.use('/api/footage', footageRoutes);
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/tournaments', require('./routes/tournaments'));
+app.use('/api/analysis-requests', require('./routes/analysisRequests'));
 
 // Health check
 app.get('/api/health', (req, res) => {

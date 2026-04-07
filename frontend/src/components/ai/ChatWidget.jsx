@@ -62,6 +62,22 @@ const ChatWidget = () => {
         const userMsg = input;
         setMessages(prev => [...prev, { type: 'user', text: userMsg }]);
         setInput('');
+
+        // 1. Guest Mode Restriction (Instant Feedback)
+        if (!user) {
+            const p = userMsg.toLowerCase();
+            const allowedKeywords = ['how do i login', 'how can i login', 'how to login', 'logging in', 'login', 'sign in'];
+            const isAllowed = allowedKeywords.some(keyword => p.includes(keyword));
+
+            if (!isAllowed) {
+                setMessages(prev => [...prev, { 
+                    type: 'bot', 
+                    text: "Please login to use me. Currently, I can only help you with 'How do I login to the platform' in Guest Mode." 
+                }]);
+                return;
+            }
+        }
+
         setLoading(true);
         try {
             const res = await aiService.getChatReply(userMsg);

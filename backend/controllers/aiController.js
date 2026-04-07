@@ -9,6 +9,19 @@ exports.chat = async (req, res, next) => {
         const { message } = req.body;
         const p = message.toLowerCase();
 
+        // 1. Guest Mode Restriction
+        if (!req.user) {
+            const allowedKeywords = ['how do i login', 'how can i login', 'how to login', 'logging in', 'login', 'sign in'];
+            const isAllowed = allowedKeywords.some(keyword => p.includes(keyword));
+
+            if (!isAllowed) {
+                return res.status(200).json({ 
+                    success: true, 
+                    reply: "Please login to use me. Currently, I can only help you with 'How do I login to the platform' in Guest Mode." 
+                });
+            }
+        }
+
         // Prepare context for AI
         let venuesContext = "";
         let historyContext = "";
