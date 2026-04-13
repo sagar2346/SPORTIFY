@@ -68,7 +68,7 @@ const ManageTournaments = () => {
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {tournaments.map((t) => (
-                                    <tr key={t._id} className="hover:bg-gray-50">
+                                    <tr key={t._id} className="hover:bg-gray-50 transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex flex-col">
                                                 <div className="text-sm font-bold text-gray-900">{t.name}</div>
@@ -89,8 +89,8 @@ const ManageTournaments = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`px-2 py-1 text-xs font-bold rounded-full ${t.status === 'open' ? 'bg-green-100 text-green-700' :
-                                                    t.status === 'ongoing' ? 'bg-blue-100 text-blue-700' :
-                                                        'bg-gray-100 text-gray-700'
+                                                t.status === 'ongoing' ? 'bg-blue-100 text-blue-700' :
+                                                    'bg-gray-100 text-gray-700'
                                                 }`}>
                                                 {t.status.toUpperCase()}
                                             </span>

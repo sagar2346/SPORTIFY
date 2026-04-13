@@ -16,7 +16,18 @@ exports.register = async (req, res, next) => {
       });
     }
 
-    const { name, email, password, role, phone, referralCode } = req.body;
+    const { name, email, password, role, phone, referralCode, adminSecret } = req.body;
+
+    // Security check for admin signup
+    if (role === 'admin') {
+      const EXPECTED_SECRET = process.env.ADMIN_SECRET || 'SPORTIFY_ADMIN_SECRET';
+      if (!adminSecret || adminSecret !== EXPECTED_SECRET) {
+        return res.status(403).json({
+          success: false,
+          message: 'Forbidden: Invalid Admin Secret',
+        });
+      }
+    }
 
     // Check if user exists
     const userExists = await User.findOne({ email });
@@ -57,6 +68,7 @@ exports.register = async (req, res, next) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        kycStatus: user.kycStatus,
       },
     });
   } catch (error) {
@@ -119,6 +131,7 @@ exports.login = async (req, res, next) => {
         email: user.email,
         role: user.role,
         avatar: user.avatar,
+        kycStatus: user.kycStatus,
       },
     });
   } catch (error) {
@@ -270,19 +283,9 @@ exports.resetPassword = async (req, res, next) => {
     user.resetPasswordExpire = undefined;
     await user.save();
 
-    // Generate token for automatic login
-    const token = user.getSignedJwtToken();
-
     res.status(200).json({
       success: true,
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avatar: user.avatar,
-      },
+      message: 'Password reset successful',
     });
   } catch (error) {
     next(error);

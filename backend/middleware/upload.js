@@ -20,6 +20,8 @@ const storage = multer.diskStorage({
       uploadPath = path.join(uploadDir, 'venues');
     } else if (file.fieldname === 'reviewImages') {
       uploadPath = path.join(uploadDir, 'reviews');
+    } else if (file.fieldname === 'image') {
+      uploadPath = path.join(uploadDir, 'tournaments');
     }
 
     // Create directory if it doesn't exist

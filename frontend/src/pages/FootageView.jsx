@@ -3,7 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { footageService } from '../services/api';
 import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
-import { FiArrowLeft, FiVideo, FiActivity, FiInfo, FiRefreshCw, FiDownload } from 'react-icons/fi';
+import { FiArrowLeft, FiVideo, FiActivity, FiInfo, FiRefreshCw, FiDownload, FiMaximize2, FiX } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const FootageView = () => {
     const { id } = useParams();
@@ -15,6 +16,7 @@ const FootageView = () => {
     const [userQuestion, setUserQuestion] = useState('');
     const [querying, setQuerying] = useState(false);
     const [showEndOverlay, setShowEndOverlay] = useState(false);
+    const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
     const playerRef = useRef(null);
     const chatEndRef = useRef(null);
 
@@ -239,9 +241,20 @@ const FootageView = () => {
                             <div className="absolute top-0 right-0 p-2 opacity-10">
                                 <FiActivity size={80} className="text-emerald-600 rotate-12" />
                             </div>
-                            <h3 className="font-bold text-gray-900 mb-4 flex items-center relative z-10">
-                                <FiActivity className="mr-2 text-emerald-600" /> AI Tactical Summary
-                            </h3>
+                            <div className="flex items-center justify-between mb-4 relative z-10">
+                                <h3 className="font-bold text-gray-900 flex items-center">
+                                    <FiActivity className="mr-2 text-emerald-600" /> AI Tactical Summary
+                                </h3>
+                                {aiSummary && (
+                                    <button 
+                                        onClick={() => setIsSummaryExpanded(true)}
+                                        className="p-1.5 hover:bg-emerald-100 rounded-lg text-emerald-600 transition-colors"
+                                        title="Expand Summary"
+                                    >
+                                        <FiMaximize2 size={16} />
+                                    </button>
+                                )}
+                            </div>
 
                             {!aiSummary ? (
                                 <button
@@ -267,7 +280,7 @@ const FootageView = () => {
                             ) : (
                                 <div className="space-y-4 relative z-10">
                                     <div className="bg-white/80 backdrop-blur rounded-lg p-5 shadow-sm border border-emerald-100 prose prose-sm prose-emerald max-w-none">
-                                        <ReactMarkdown>{aiSummary}</ReactMarkdown>
+                                        <ReactMarkdown>{aiSummary.replace(/^###?\s+Tactical Summary\n+/i, '')}</ReactMarkdown>
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <button
@@ -349,6 +362,61 @@ const FootageView = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Expanded Tactical Summary Modal */}
+            <AnimatePresence>
+                {isSummaryExpanded && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10 bg-slate-900/40 backdrop-blur-xl"
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="bg-white rounded-[3rem] w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl border border-white flex flex-col"
+                        >
+                            <div className="p-8 md:p-12 border-b border-slate-100 flex items-center justify-between bg-emerald-50/30">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 shadow-sm">
+                                        <FiActivity size={24} />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Tactical Analysis</h2>
+                                        <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-1">Full AI Insight Report</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={downloadReport}
+                                        className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-all active:scale-95 shadow-sm"
+                                    >
+                                        <FiDownload /> Export PDF
+                                    </button>
+                                    <button 
+                                        onClick={() => setIsSummaryExpanded(false)}
+                                        className="w-12 h-12 flex items-center justify-center bg-slate-900 text-white rounded-2xl hover:bg-slate-800 transition-all active:scale-90"
+                                    >
+                                        <FiX size={20} />
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div className="flex-1 overflow-y-auto p-8 md:p-12 custom-scrollbar bg-white">
+                                <div className="max-w-4xl mx-auto prose prose-emerald lg:prose-lg max-w-none prose-headings:font-bold prose-p:text-slate-600 prose-li:text-slate-600">
+                                    <ReactMarkdown>{aiSummary.replace(/^###?\s+Tactical Summary\n+/i, '')}</ReactMarkdown>
+                                </div>
+                            </div>
+
+                            <div className="p-8 border-t border-slate-100 bg-slate-50 flex items-center justify-center">
+                                <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Sportify Performance Analysis System &copy; 2026</p>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

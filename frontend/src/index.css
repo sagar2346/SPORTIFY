@@ -3,7 +3,9 @@
 @tailwind utilities;
 
 @layer base {
-  body {
+  html, body {
+    margin: 0;
+    padding: 0;
     @apply bg-white text-slate-700 antialiased;
     min-height: 100vh;
   }
@@ -14,7 +16,22 @@
   h4,
   h5,
   h6 {
-    @apply text-primary-600 tracking-tight font-bold;
+    @apply text-slate-900 tracking-tight font-semibold;
+  }
+
+  @keyframes scaleUp {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-scale-up {
+    animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 }
 
@@ -22,61 +39,67 @@
 
   /* Modern Professional Card */
   .glass {
-    @apply bg-white/80 backdrop-blur-md border border-slate-200 shadow-xl rounded-2xl;
+    @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-sm rounded-2xl;
   }
 
   /* Premium Card */
   .card {
-    @apply bg-white border border-slate-100 shadow-md rounded-2xl p-6 transition-all duration-300;
+    @apply bg-white border border-slate-200 shadow-sm rounded-2xl p-6 transition-all duration-300;
   }
 
   .card:hover {
-    @apply shadow-lg transform -translate-y-1 border-sky-500/20;
+    @apply shadow-md border-slate-300 transform -translate-y-0.5;
   }
 
   /* Premium Buttons */
   .btn {
-    @apply px-6 py-3 rounded-xl font-bold text-sm tracking-wide transition-all duration-300 shadow-sm flex items-center justify-center gap-2 transform active:scale-95;
+    @apply px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 transform active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
   }
 
   .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700 hover:shadow-primary-500/20 border border-transparent;
+    @apply bg-slate-900 text-white hover:bg-black shadow-sm;
   }
 
   .btn-secondary {
-    @apply bg-slate-100 text-primary-600 border border-slate-200 hover:bg-slate-200 shadow-none hover:shadow-md;
+    @apply bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200;
   }
 
   .btn-outline {
-    @apply bg-transparent text-sky-600 border border-sky-600 hover:bg-sky-50 shadow-none;
+    @apply bg-white text-slate-700 border border-slate-200 hover:border-slate-400 hover:bg-slate-50;
   }
 
   /* Inputs */
   .input {
-    @apply w-full px-5 py-3.5 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 outline-none transition-all duration-200;
+    @apply w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 outline-none transition-all duration-200;
   }
 
   .input:focus {
-    @apply border-primary-500 ring-4 ring-primary-500/10;
+    @apply border-slate-400 ring-2 ring-slate-400/5;
+  }
+
+  /* Custom Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-slate-200 rounded-full hover:bg-slate-300;
   }
 
   /* Animations */
   .animate-fade-in {
-    animation: fadeIn 0.8s ease-out forwards;
+    animation: fadeIn 0.5s ease-out forwards;
   }
 
   .animate-slide-up {
-    animation: slideUp 0.8s ease-out forwards;
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-
-    to {
-      opacity: 1;
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   @keyframes slideUp {
@@ -84,10 +107,28 @@
       opacity: 0;
       transform: translateY(20px);
     }
-
     to {
       opacity: 1;
       transform: translateY(0);
     }
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in-up {
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-fade-in-down {
+    animation: slideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 }

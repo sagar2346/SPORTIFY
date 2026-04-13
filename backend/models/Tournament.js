@@ -60,6 +60,11 @@ const TournamentSchema = new mongoose.Schema({
         enum: ['open', 'ongoing', 'completed', 'cancelled'],
         default: 'open',
     },
+    registrationType: {
+        type: String,
+        enum: ['team', 'solo'],
+        default: 'team',
+    },
     image: {
         type: String,
         default: '',

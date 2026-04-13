@@ -9,7 +9,7 @@ const TournamentRegistrationSchema = new mongoose.Schema({
     team: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Team',
-        required: true,
+        required: false,
     },
     registeredBy: {
         type: mongoose.Schema.Types.ObjectId,
@@ -33,6 +33,14 @@ const TournamentRegistrationSchema = new mongoose.Schema({
 });
 
 // Prevent same team from registering multiple times for same tournament
-TournamentRegistrationSchema.index({ tournament: 1, team: 1 }, { unique: true });
+// and same user from registering multiple times for solo tournament
+TournamentRegistrationSchema.index({ tournament: 1, team: 1 }, { 
+    unique: true, 
+    partialFilterExpression: { team: { $exists: true } } 
+});
+TournamentRegistrationSchema.index({ tournament: 1, registeredBy: 1 }, { 
+    unique: true,
+    partialFilterExpression: { team: { $exists: false } }
+});
 
 module.exports = mongoose.model('TournamentRegistration', TournamentRegistrationSchema);

@@ -13,7 +13,8 @@ const {
   addContact,
   getContacts,
   sendContactEmail,
-  markAllNotificationsRead
+  markAllNotificationsRead,
+  redeemLoyaltyPoints
 } = require('../controllers/userController');
 const { protect } = require('../middleware/auth');
 const upload = require('../middleware/upload');
@@ -32,6 +33,9 @@ router.get('/analytics', getUserAnalytics);
 router.get('/wishlist', getWishlist);
 router.post('/wishlist/:venueId', addToWishlist);
 router.delete('/wishlist/:venueId', removeFromWishlist);
+
+// Wallet/Points routes
+router.post('/redeem-points', redeemLoyaltyPoints);
 
 // Contact/Friend routes
 router.get('/contacts', getContacts);

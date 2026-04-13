@@ -8,6 +8,8 @@ const OwnerInventory = () => {
     const [loading, setLoading] = useState(true);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState(null);
     const [currentItem, setCurrentItem] = useState(null);
 
     const [formData, setFormData] = useState({
@@ -72,16 +74,22 @@ const OwnerInventory = () => {
         }
     };
 
-    const handleDeleteItem = async (id) => {
-        if (window.confirm('Are you sure you want to remove this item?')) {
-            try {
-                await inventoryService.deleteItem(id);
-                toast.success('Item deleted successfully');
-                fetchInventory();
-            } catch (error) {
-                console.error(error);
-                toast.error('Failed to delete item');
-            }
+    const handleDeleteItem = (id) => {
+        setItemToDelete(id);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!itemToDelete) return;
+        try {
+            await inventoryService.deleteItem(itemToDelete);
+            toast.success('Item deleted successfully');
+            setIsDeleteModalOpen(false);
+            setItemToDelete(null);
+            fetchInventory();
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to delete item');
         }
     };
 
@@ -97,18 +105,18 @@ const OwnerInventory = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="flex justify-between items-center mb-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-colors duration-300">
+            <div className="flex justify-between items-center mb-10">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Inventory Management</h1>
-                    <p className="text-gray-600 mt-1">Track and manage equipment availability for your venues.</p>
+                    <h1 className="text-4xl font-bold text-gray-900">Inventory Management</h1>
+                    <p className="text-gray-500 mt-2">Manage your venue's equipment and stock.</p>
                 </div>
                 <button
                     onClick={() => {
                         setFormData({ name: '', quantity: '', sport: 'Football', condition: 'New' });
                         setIsAddModalOpen(true);
                     }}
-                    className="btn btn-primary flex items-center space-x-2"
+                    className="btn btn-primary flex items-center space-x-2 px-6 py-2"
                 >
                     <FiPlus />
                     <span>Add Item</span>
@@ -116,61 +124,73 @@ const OwnerInventory = () => {
             </div>
 
             {/* Inventory List */}
-            <div className="bg-white shadow-md rounded-lg overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
+            <div className="bg-white rounded-2xl border shadow-sm overflow-hidden p-0">
+                <table className="min-w-full divide-y divide-gray-100">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Name</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sport</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Condition</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            <th className="px-8 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Item Name</th>
+                            <th className="px-8 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
+                            <th className="px-8 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Quantity</th>
+                            <th className="px-8 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                            <th className="px-8 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="divide-y divide-gray-50">
                         {loading ? (
                             <tr>
-                                <td colSpan="5" className="px-6 py-10 text-center text-gray-500">
-                                    Loading inventory...
+                                <td colSpan="5" className="px-8 py-20 text-center">
+                                    <div className="animate-pulse flex flex-col items-center">
+                                        <p className="text-gray-500 font-medium">Loading Inventory...</p>
+                                    </div>
                                 </td>
                             </tr>
                         ) : items.length > 0 ? (
                             items.map((item) => (
-                                <tr key={item._id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm font-medium text-gray-900">{item.name}</div>
+                                <tr key={item._id} className="hover:bg-gray-50/50 transition-colors group">
+                                    <td className="px-8 py-4 whitespace-nowrap">
+                                        <div className="text-base font-semibold text-gray-900">{item.name}</div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    <td className="px-8 py-4 whitespace-nowrap">
+                                        <span className="px-3 py-1 inline-flex text-xs font-medium rounded-full bg-primary-50 text-primary-700">
                                             {item.sport}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {item.quantity}
+                                    <td className="px-8 py-4 whitespace-nowrap">
+                                        <div className="flex items-center">
+                                            <span className={`text-base font-medium ${item.quantity < 5 ? 'text-red-600' : 'text-gray-900'}`}>{item.quantity}</span>
+                                            <span className="ml-2 text-xs text-gray-400">Units</span>
+                                        </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {item.condition}
+                                    <td className="px-8 py-4 whitespace-nowrap">
+                                        <span className={`px-3 py-1 inline-flex text-xs font-medium rounded-full ${item.condition === 'New' || item.condition === 'Excellent'
+                                            ? 'bg-green-50 text-green-700'
+                                            : 'bg-amber-50 text-amber-700'
+                                            }`}>
+                                            {item.condition}
+                                        </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <button
-                                            onClick={() => openEditModal(item)}
-                                            className="text-indigo-600 hover:text-indigo-900 mr-4"
-                                        >
-                                            <FiEdit2 />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeleteItem(item._id)}
-                                            className="text-red-600 hover:text-red-900"
-                                        >
-                                            <FiTrash2 />
-                                        </button>
+                                    <td className="px-8 py-4 whitespace-nowrap text-right text-sm">
+                                        <div className="flex justify-end space-x-2">
+                                            <button
+                                                onClick={() => openEditModal(item)}
+                                                className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all"
+                                            >
+                                                <FiEdit2 />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteItem(item._id)}
+                                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                            >
+                                                <FiTrash2 />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="5" className="px-6 py-10 text-center text-gray-500">
-                                    No items in inventory. Click "Add Item" to get started.
+                                <td colSpan="5" className="px-8 py-20 text-center">
+                                    <p className="text-gray-500 font-medium">No items in inventory.</p>
                                 </td>
                             </tr>
                         )}
@@ -180,193 +200,209 @@ const OwnerInventory = () => {
 
             {/* Add Item Modal */}
             {isAddModalOpen && (
-                <div className="fixed inset-0 z-50 overflow-y-auto">
-                    <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                        <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-                            <div className="absolute inset-0 bg-gray-500 opacity-75" onClick={() => setIsAddModalOpen(false)}></div>
-                        </div>
-
-                        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-                        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                            <form onSubmit={handleAddItem}>
-                                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-lg leading-6 font-medium text-gray-900">Add New Item</h3>
-                                        <button type="button" onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-gray-500">
-                                            <FiX size={24} />
-                                        </button>
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" onClick={() => setIsAddModalOpen(false)}></div>
+                    <div className="bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all w-full max-w-lg border border-gray-100 relative z-10 animate-slide-up">
+                        <form onSubmit={handleAddItem}>
+                            <div className="p-8">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="text-2xl font-bold text-gray-900">Add New Item</h3>
+                                    <button type="button" onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-gray-500 p-2 hover:bg-gray-100 rounded-xl transition-all">
+                                        <FiX size={24} />
+                                    </button>
+                                </div>
+                                <div className="space-y-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Item Name</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            className="input w-full font-bold"
+                                            value={formData.name}
+                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                            placeholder="e.g. Professional Football Series A"
+                                        />
                                     </div>
-                                    <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Sport Category</label>
+                                        <select
+                                            className="input w-full font-bold"
+                                            value={formData.sport}
+                                            onChange={(e) => setFormData({ ...formData, sport: e.target.value })}
+                                        >
+                                            <option value="Football">Football</option>
+                                            <option value="Basketball">Basketball</option>
+                                            <option value="Tennis">Tennis</option>
+                                            <option value="Badminton">Badminton</option>
+                                            <option value="Cricket">Cricket</option>
+                                            <option value="Volleyball">Volleyball</option>
+                                            <option value="Gym">Gym</option>
+                                            <option value="Futsal">Futsal</option>
+                                            <option value="Table Tennis">Table Tennis</option>
+                                            <option value="Swimming">Swimming</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-6">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700">Item Name</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
                                             <input
-                                                type="text"
+                                                type="number"
                                                 required
-                                                className="input w-full mt-1"
-                                                value={formData.name}
-                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                min="1"
+                                                className="input w-full font-bold"
+                                                value={formData.quantity}
+                                                onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700">Sport</label>
+                                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Physical Condition</label>
                                             <select
-                                                className="input w-full mt-1"
-                                                value={formData.sport}
-                                                onChange={(e) => setFormData({ ...formData, sport: e.target.value })}
+                                                className="input w-full font-bold"
+                                                value={formData.condition}
+                                                onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
                                             >
-                                                <option value="Football">Football</option>
-                                                <option value="Basketball">Basketball</option>
-                                                <option value="Tennis">Tennis</option>
-                                                <option value="Badminton">Badminton</option>
-                                                <option value="Cricket">Cricket</option>
-                                                <option value="Volleyball">Volleyball</option>
-                                                <option value="Gym">Gym</option>
-                                                <option value="Futsal">Futsal</option>
-                                                <option value="Table Tennis">Table Tennis</option>
-                                                <option value="Swimming">Swimming</option>
-                                                <option value="Other">Other</option>
+                                                <option value="New">Brand New</option>
+                                                <option value="Excellent">Excellent</option>
+                                                <option value="Good">Operational</option>
+                                                <option value="Fair">Fair</option>
+                                                <option value="Poor">Needs Service</option>
                                             </select>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700">Quantity</label>
-                                                <input
-                                                    type="number"
-                                                    required
-                                                    min="1"
-                                                    className="input w-full mt-1"
-                                                    value={formData.quantity}
-                                                    onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700">Condition</label>
-                                                <select
-                                                    className="input w-full mt-1"
-                                                    value={formData.condition}
-                                                    onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
-                                                >
-                                                    <option value="New">New</option>
-                                                    <option value="Excellent">Excellent</option>
-                                                    <option value="Good">Good</option>
-                                                    <option value="Fair">Fair</option>
-                                                    <option value="Poor">Poor</option>
-                                                </select>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                                    <button type="submit" className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
-                                        Add Item
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                                        onClick={() => setIsAddModalOpen(false)}
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+                            </div>
+                            <div className="bg-gray-50 p-8 flex flex-row-reverse gap-4">
+                                <button type="submit" className="btn btn-primary px-6 py-2">
+                                    Add Item
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 transition-all"
+                                    onClick={() => setIsAddModalOpen(false)}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
 
             {/* Edit Item Modal */}
             {isEditModalOpen && (
-                <div className="fixed inset-0 z-50 overflow-y-auto">
-                    <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                        <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-                            <div className="absolute inset-0 bg-gray-500 opacity-75" onClick={() => setIsEditModalOpen(false)}></div>
-                        </div>
-
-                        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-                        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                            <form onSubmit={handleEditItem}>
-                                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-lg leading-6 font-medium text-gray-900">Edit Item</h3>
-                                        <button type="button" onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-gray-500">
-                                            <FiX size={24} />
-                                        </button>
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" onClick={() => setIsEditModalOpen(false)}></div>
+                    <div className="bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all w-full max-w-lg border border-gray-100 relative z-10 animate-slide-up">
+                        <form onSubmit={handleEditItem}>
+                            <div className="p-8">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="text-2xl font-bold text-gray-900">Edit Item</h3>
+                                    <button type="button" onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-gray-500 p-2 hover:bg-gray-100 rounded-xl transition-all">
+                                        <FiX size={24} />
+                                    </button>
+                                </div>
+                                <div className="space-y-6">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Item Name</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            className="input w-full font-bold"
+                                            value={formData.name}
+                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        />
                                     </div>
-                                    <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Sport Category</label>
+                                        <select
+                                            className="input w-full font-bold"
+                                            value={formData.sport}
+                                            onChange={(e) => setFormData({ ...formData, sport: e.target.value })}
+                                        >
+                                            <option value="Football">Football</option>
+                                            <option value="Basketball">Basketball</option>
+                                            <option value="Tennis">Tennis</option>
+                                            <option value="Badminton">Badminton</option>
+                                            <option value="Cricket">Cricket</option>
+                                            <option value="Volleyball">Volleyball</option>
+                                            <option value="Gym">Gym</option>
+                                            <option value="Futsal">Futsal</option>
+                                            <option value="Table Tennis">Table Tennis</option>
+                                            <option value="Swimming">Swimming</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-6">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700">Item Name</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
                                             <input
-                                                type="text"
+                                                type="number"
                                                 required
-                                                className="input w-full mt-1"
-                                                value={formData.name}
-                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                min="1"
+                                                className="input w-full font-bold"
+                                                value={formData.quantity}
+                                                onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700">Sport</label>
+                                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Physical Condition</label>
                                             <select
-                                                className="input w-full mt-1"
-                                                value={formData.sport}
-                                                onChange={(e) => setFormData({ ...formData, sport: e.target.value })}
+                                                className="input w-full font-bold"
+                                                value={formData.condition}
+                                                onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
                                             >
-                                                <option value="Football">Football</option>
-                                                <option value="Basketball">Basketball</option>
-                                                <option value="Tennis">Tennis</option>
-                                                <option value="Badminton">Badminton</option>
-                                                <option value="Cricket">Cricket</option>
-                                                <option value="Volleyball">Volleyball</option>
-                                                <option value="Gym">Gym</option>
-                                                <option value="Futsal">Futsal</option>
-                                                <option value="Table Tennis">Table Tennis</option>
-                                                <option value="Swimming">Swimming</option>
-                                                <option value="Other">Other</option>
+                                                <option value="New">Brand New</option>
+                                                <option value="Excellent">Excellent</option>
+                                                <option value="Good">Operational</option>
+                                                <option value="Fair">Fair</option>
+                                                <option value="Poor">Needs Service</option>
                                             </select>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700">Quantity</label>
-                                                <input
-                                                    type="number"
-                                                    required
-                                                    min="1"
-                                                    className="input w-full mt-1"
-                                                    value={formData.quantity}
-                                                    onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700">Condition</label>
-                                                <select
-                                                    className="input w-full mt-1"
-                                                    value={formData.condition}
-                                                    onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
-                                                >
-                                                    <option value="New">New</option>
-                                                    <option value="Excellent">Excellent</option>
-                                                    <option value="Good">Good</option>
-                                                    <option value="Fair">Fair</option>
-                                                    <option value="Poor">Poor</option>
-                                                </select>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                                    <button type="submit" className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
-                                        Save Changes
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                                        onClick={() => setIsEditModalOpen(false)}
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                            </form>
+                            </div>
+                            <div className="bg-gray-50 p-8 flex flex-row-reverse gap-4">
+                                <button type="submit" className="btn btn-primary px-6 py-2">
+                                    Save Changes
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 transition-all"
+                                    onClick={() => setIsEditModalOpen(false)}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {isDeleteModalOpen && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" onClick={() => setIsDeleteModalOpen(false)}></div>
+                    <div className="bg-white rounded-[2.5rem] p-10 shadow-2xl transform transition-all w-full max-w-md border border-gray-100 relative z-10 animate-slide-up text-center">
+                        <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <FiTrash2 size={32} className="text-red-500" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2 font-black">Delete Item?</h3>
+                        <p className="text-gray-500 mb-10 leading-relaxed font-bold text-xs uppercase tracking-widest">Are you sure you want to remove this item? This action cannot be undone.</p>
+                        
+                        <div className="flex flex-col gap-3">
+                            <button 
+                                onClick={confirmDelete}
+                                className="w-full py-4 bg-red-500 hover:bg-red-600 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-all shadow-xl shadow-red-500/20 active:scale-[0.98]"
+                            >
+                                Confirm Delete
+                            </button>
+                            <button 
+                                onClick={() => setIsDeleteModalOpen(false)}
+                                className="w-full py-4 bg-white hover:bg-gray-50 text-gray-400 rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-all"
+                            >
+                                Stay Safe
+                            </button>
                         </div>
                     </div>
                 </div>

@@ -81,10 +81,10 @@ const DiscountCodes = () => {
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="animate-fade-in">
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-3xl font-bold flex items-center">
-                    <FiTag className="mr-3" />
+                    <FiTag className="mr-3 text-primary-600" />
                     Discount Codes
                 </h1>
                 <button
@@ -97,7 +97,7 @@ const DiscountCodes = () => {
             </div>
 
             {showForm && (
-                <div className="card mb-8 animate-fade-in-down">
+                <div className="card mb-8 animate-fade-in">
                     <h2 className="text-xl font-bold mb-4">New Discount Code</h2>
                     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -121,7 +121,7 @@ const DiscountCodes = () => {
                                 className="input"
                             >
                                 <option value="percentage">Percentage (%)</option>
-                                <option value="fixed">Fixed Amount ($)</option>
+                                <option value="fixed">Fixed Amount</option>
                             </select>
                         </div>
                         <div>
@@ -193,15 +193,15 @@ const DiscountCodes = () => {
                                 required
                             />
                         </div>
-                        <div className="md:col-span-2 flex justify-end space-x-4">
+                        <div className="md:col-span-2 flex justify-end space-x-4 pt-4 border-t mt-4">
                             <button
                                 type="button"
                                 onClick={() => setShowForm(false)}
-                                className="btn bg-gray-300 text-gray-700 hover:bg-gray-400"
+                                className="btn text-gray-700 hover:bg-gray-200"
                             >
                                 Cancel
                             </button>
-                            <button type="submit" className="btn btn-primary">
+                            <button type="submit" className="btn btn-primary px-8">
                                 Create Code
                             </button>
                         </div>
@@ -223,19 +223,19 @@ const DiscountCodes = () => {
                     <tbody className="bg-white divide-y divide-gray-200">
                         {codes.length === 0 ? (
                             <tr>
-                                <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
+                                <td colSpan="5" className="px-6 py-4 text-center text-gray-500 italic">
                                     No discount codes found.
                                 </td>
                             </tr>
                         ) : (
                             codes.map((code) => (
-                                <tr key={code._id}>
+                                <tr key={code._id} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className="font-bold text-primary-600">{code.code}</span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center">
-                                            {code.type === 'percentage' ? <FiPercent className="mr-1" /> : <FiDollarSign className="mr-1" />}
+                                        <div className="flex items-center text-gray-900 font-medium">
+                                            {code.type === 'percentage' ? <FiPercent className="mr-1 text-gray-400" /> : <FiDollarSign className="mr-1 text-gray-400" />}
                                             {code.value}{code.type === 'percentage' ? '%' : ''}
                                             {code.minPurchase > 0 && <span className="text-xs text-gray-500 ml-2">(Min: Rs. {code.minPurchase})</span>}
                                         </div>
@@ -244,7 +244,7 @@ const DiscountCodes = () => {
                                         {new Date(code.validFrom).toLocaleDateString()} - {new Date(code.validUntil).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {code.usedCount} / {code.usageLimit || '∞'}
+                                        <span className="font-medium text-gray-900">{code.usedCount}</span> / {code.usageLimit || '∞'}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${params(code) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>

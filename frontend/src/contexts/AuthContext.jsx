@@ -28,15 +28,18 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const loadUser = async () => {
+    setLoading(true);
     try {
       const response = await authService.getMe();
-      setUser(response.data.data);
+      if (response.data.success) {
+        setUser(response.data.data);
+      }
     } catch (error) {
       console.error('Load User Error:', error);
-      // Only clear token if it's an auth error (401)
       if (error.response?.status === 401) {
         localStorage.removeItem('token');
         setToken(null);
+        setUser(null);
       }
     } finally {
       setLoading(false);
@@ -48,28 +51,21 @@ export const AuthProvider = ({ children }) => {
       const response = await authService.login(email, password);
       const { token, user } = response.data;
 
-      // Enforce role check if a specific portal is used
+      // Enforce role check
       if (requiredRole && user.role !== requiredRole) {
         throw new Error(`Unauthorized. This login is restricted to ${requiredRole}s only.`);
       }
 
+      // 1. Set localStorage first
       localStorage.setItem('token', token);
+
+      // 2. Update state in a single batch if possible, or order them logically
       setToken(token);
       setUser(user);
 
       toast.success('Login successful!');
-
-      // Role-based redirect
-      if (user.role === 'admin') {
-        window.location.href = '/admin/dashboard';
-      } else if (user.role === 'venue_owner') {
-        window.location.href = '/owner/dashboard';
-      } else {
-        window.location.href = '/dashboard';
-      }
       return { success: true };
     } catch (error) {
-      // Return error structure to component for custom handling (inline vs toast)
       const message = error.response?.data?.message || error.message || 'Login failed';
       const status = error.response?.status;
       return { success: false, message, status };
@@ -84,8 +80,11 @@ export const AuthProvider = ({ children }) => {
       // Do NOT auto-login. Redirect to login page.
       toast.success('Registration successful! Please log in.');
 
-      // Role-based redirect to login
-      window.location.href = `/login?role=${user.role}`;
+      // Role-based redirect to login using navigate
+      navigate(`/login?role=${user.role}`, { 
+        replace: true,
+        state: { email: user.email }
+      });
 
       return { success: true };
     } catch (error) {

@@ -1,4 +1,6 @@
 const Footage = require('../models/Footage');
+const Team = require('../models/Team');
+const AnalysisRequest = require('../models/AnalysisRequest');
 const { analyzeGameFootage } = require('../utils/gemini');
 
 // @desc    Upload game footage
@@ -6,8 +8,33 @@ const { analyzeGameFootage } = require('../utils/gemini');
 // @access  Private (Admin)
 exports.uploadFootage = async (req, res, next) => {
     try {
+        const { teamId } = req.body;
+        if (teamId) {
+            const team = await Team.findById(teamId);
+            if (!team) return res.status(404).json({ success: false, message: 'Team not found' });
+            const isMember = team.members.some(member => {
+                const memberId = member.user && (member.user._id || member.user);
+                return memberId && memberId.toString() === req.user.id;
+            });
+
+            if (!isMember) {
+                return res.status(403).json({ success: false, message: 'Admins must be members of the team to upload footage' });
+            }
+            req.body.team = teamId;
+        }
+
         req.body.uploadedBy = req.user.id;
         const footage = await Footage.create(req.body);
+
+        // If this was fulfilling a request, update the request
+        const { requestId } = req.body;
+        if (requestId) {
+            await AnalysisRequest.findByIdAndUpdate(requestId, {
+                status: 'fulfilled',
+                footage: footage._id
+            });
+        }
+
         res.status(201).json({ success: true, data: footage });
     } catch (error) {
         next(error);
@@ -19,7 +46,63 @@ exports.uploadFootage = async (req, res, next) => {
 // @access  Private
 exports.getAllFootage = async (req, res, next) => {
     try {
-        const footage = await Footage.find().sort('-createdAt');
+        const { teamId } = req.query;
+        let query = {};
+
+        if (teamId) {
+            const team = await Team.findById(teamId);
+            if (!team) return res.status(404).json({ success: false, message: 'Team not found' });
+            const isMember = team.members.some(member => {
+                const memberId = member.user && (member.user._id || member.user);
+                return memberId && memberId.toString() === req.user.id;
+            });
+
+            if (!isMember) {
+                return res.status(403).json({ success: false, message: 'Access denied: Not a team member' });
+            }
+            query.team = teamId;
+        } else if (req.user.role === 'customer' || req.user.role === 'admin') {
+            // Find teams the user is a member of
+            const userTeams = await Team.find({ 'members.user': req.user.id });
+            const teamIds = userTeams.map(t => t._id);
+            query = { team: { $in: teamIds } };
+        }
+
+        const footage = await Footage.find(query).sort('-createdAt');
+        res.status(200).json({ success: true, data: footage });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Get single game footage
+// @route   GET /api/footage/:id
+// @access  Private
+exports.getFootage = async (req, res, next) => {
+    try {
+        const footage = await Footage.findById(req.params.id);
+        if (!footage) {
+            return res.status(404).json({ success: false, message: 'Footage not found' });
+        }
+
+        // Privacy Check
+        if (footage.team) {
+            const team = await Team.findById(footage.team);
+            const isMember = team.members.some(member => {
+                const memberId = member.user && (member.user._id || member.user);
+                return memberId && memberId.toString() === req.user.id;
+            });
+
+            if (!isMember) {
+                return res.status(403).json({ success: false, message: 'Access denied: Private team footage' });
+            }
+            // Attach block info to footage for frontend UI
+            footage._doc.teamInfo = {
+                isBlocked: team.isBlocked,
+                fineAmount: team.fineAmount
+            };
+        }
+
         res.status(200).json({ success: true, data: footage });
     } catch (error) {
         next(error);
@@ -34,6 +117,26 @@ exports.queryFootage = async (req, res, next) => {
         const footage = await Footage.findById(req.params.id);
         if (!footage) {
             return res.status(404).json({ success: false, message: 'Footage not found' });
+        }
+
+        // Privacy Check: Must be member of the associated team
+        if (footage.team) {
+            const team = await Team.findById(footage.team);
+            const isMember = team.members.some(member => {
+                const memberId = member.user && (member.user._id || member.user);
+                return memberId && memberId.toString() === req.user.id;
+            });
+
+            if (!isMember) {
+                return res.status(403).json({ success: false, message: 'Access denied: Private team footage' });
+            }
+            if (team.isBlocked) {
+                return res.status(403).json({ 
+                    success: false, 
+                    message: 'AI Analysis is restricted for blocked teams. Please pay the fine to restore access.',
+                    isBlocked: true
+                });
+            }
         }
 
         const { question } = req.body;
@@ -63,6 +166,26 @@ exports.getFootageSummary = async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Footage not found' });
         }
 
+        // Privacy Check
+        if (footage.team) {
+            const team = await Team.findById(footage.team);
+            const isMember = team.members.some(member => {
+                const memberId = member.user && (member.user._id || member.user);
+                return memberId && memberId.toString() === req.user.id;
+            });
+
+            if (!isMember) {
+                return res.status(403).json({ success: false, message: 'Access denied' });
+            }
+            if (team.isBlocked) {
+                return res.status(403).json({ 
+                    success: false, 
+                    message: 'AI Features are restricted for blocked teams.',
+                    isBlocked: true
+                });
+            }
+        }
+
         const { generateSummary } = require('../utils/gemini');
         const summary = await generateSummary(footage.title, footage.analysisText, footage.description);
 
@@ -77,15 +200,27 @@ exports.getFootageSummary = async (req, res, next) => {
 // @access  Private (Admin)
 exports.deleteFootage = async (req, res, next) => {
     try {
-        console.log(`🗑️ Attempting to delete footage: ${req.params.id}`);
-        const footage = await Footage.findByIdAndDelete(req.params.id);
+        const footage = await Footage.findById(req.params.id);
 
         if (!footage) {
-            console.log('Deletion failed: Footage not found');
             return res.status(404).json({ success: false, message: 'Footage not found' });
         }
 
-        console.log('Footage deleted successfully from DB');
+        // Privacy Check: Admins must be part of the team to delete
+        if (footage.team) {
+            const team = await Team.findById(footage.team);
+            const isMember = team.members.some(member => {
+                const memberId = member.user && (member.user._id || member.user);
+                return memberId && memberId.toString() === req.user.id;
+            });
+
+            if (!isMember) {
+                return res.status(403).json({ success: false, message: 'Access denied: You are not a member of this team' });
+            }
+        }
+
+        await footage.deleteOne();
+
         res.status(200).json({ success: true, message: 'Footage deleted successfully' });
     } catch (error) {
         console.error('Deletion Error:', error);
@@ -103,6 +238,19 @@ exports.exportFootageReport = async (req, res, next) => {
         const footage = await Footage.findById(req.params.id);
         if (!footage) {
             return res.status(404).json({ success: false, message: 'Footage not found' });
+        }
+
+        // Privacy Check
+        if (footage.team) {
+            const team = await Team.findById(footage.team);
+            const isMember = team.members.some(member => {
+                const memberId = member.user && (member.user._id || member.user);
+                return memberId && memberId.toString() === req.user.id;
+            });
+
+            if (!isMember) {
+                return res.status(403).json({ success: false, message: 'Access denied' });
+            }
         }
 
         const { aiSummary } = req.body;

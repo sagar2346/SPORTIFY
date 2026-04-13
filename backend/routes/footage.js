@@ -3,6 +3,7 @@ const router = express.Router();
 const {
     uploadFootage,
     getAllFootage,
+    getFootage,
     queryFootage,
     getFootageSummary,
     deleteFootage,
@@ -17,9 +18,13 @@ router
     .get(getAllFootage)
     .post(authorize('admin'), uploadFootage);
 
+router
+    .route('/:id')
+    .get(getFootage)
+    .delete(authorize('admin'), deleteFootage);
+
 router.post('/:id/query', queryFootage);
 router.get('/:id/summary', getFootageSummary);
 router.post('/:id/export', exportFootageReport);
-router.delete('/:id', authorize('admin'), deleteFootage);
 
 module.exports = router;

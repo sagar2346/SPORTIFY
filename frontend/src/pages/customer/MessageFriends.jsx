@@ -81,54 +81,58 @@ const MessageFriends = () => {
     }
 
     return (
-        <div className="max-w-4xl mx-auto px-4 py-8">
-            <div className="flex justify-between items-center mb-8">
+        <div className="max-w-4xl mx-auto">
+            <div className="flex justify-between items-center mb-10">
                 <div>
-                    <h1 className="text-3xl font-bold flex items-center gap-2">
-                        <FiUsers className="text-primary-600" />
-                        Message Friends
+                    <h1 className="text-3xl font-bold flex items-center gap-3 text-slate-900 tracking-tight">
+                        <FiUsers className="text-slate-400" />
+                        Messages
                     </h1>
-                    <p className="text-gray-600 mt-2">Save your friends' contacts and send them emails directly.</p>
+                    <p className="text-sm text-slate-500 mt-1 font-medium">Send direct messages to your contacts.</p>
                 </div>
                 <button
                     onClick={() => setShowAddModal(true)}
-                    className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+                    className="btn btn-primary px-8 rounded-xl text-xs font-bold uppercase tracking-widest shadow-xl shadow-slate-900/10"
                 >
-                    <FiUserPlus />
-                    Add Friend
+                    <FiUserPlus className="mr-2" />
+                    Add friend
                 </button>
             </div>
 
             {contacts.length === 0 ? (
-                <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-                    <FiUsers className="text-4xl text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900">No friends added yet</h3>
-                    <p className="text-gray-500 mb-6">Add your friends to easily send them messages.</p>
-                    <button
-                        onClick={() => setShowAddModal(true)}
-                        className="text-primary-600 font-medium hover:text-primary-700"
-                    >
-                        Add your first friend
-                    </button>
+                <div className="text-center py-20 bg-slate-50 rounded-3xl border border-dashed border-slate-200 shadow-sm">
+                    <div className="bg-white p-6 rounded-2xl inline-block mb-6 shadow-sm border border-slate-100">
+                        <FiUsers size={40} className="text-slate-300" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900">No contacts found</h3>
+                    <p className="text-sm text-slate-500 mb-10 font-medium">You haven't added any contacts to your list yet.</p>
+                    <div className="flex justify-center">
+                        <button
+                            onClick={() => setShowAddModal(true)}
+                            className="btn btn-primary px-10 py-4 rounded-xl text-xs font-bold uppercase tracking-widest"
+                        >
+                            Add first contact
+                        </button>
+                    </div>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {contacts.map((contact) => (
-                        <div key={contact._id} className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow">
+                        <div key={contact._id} className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:border-slate-900/10 transition-all duration-300 group">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <h3 className="font-semibold text-lg">{contact.name}</h3>
-                                    <p className="text-gray-600 flex items-center gap-2 text-sm mt-1">
-                                        <FiMail className="text-gray-400" />
+                                    <h3 className="font-bold text-xl text-slate-900">{contact.name}</h3>
+                                    <p className="text-slate-500 flex items-center gap-2 text-xs mt-2 font-medium">
+                                        <FiMail className="text-slate-400" />
                                         {contact.email}
                                     </p>
                                 </div>
                                 <button
                                     onClick={() => openMessageModal(contact)}
-                                    className="p-2 text-primary-600 hover:bg-primary-50 rounded-full transition-colors"
+                                    className="p-4 text-slate-900 bg-slate-50 hover:bg-slate-900 hover:text-white rounded-xl transition-all shadow-sm active:scale-95"
                                     title="Send Message"
                                 >
-                                    <FiSend className="text-xl" />
+                                    <FiSend size={20} />
                                 </button>
                             </div>
                         </div>
@@ -138,43 +142,48 @@ const MessageFriends = () => {
 
             {/* Add Friend Modal */}
             {showAddModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-                    <div className="bg-white rounded-lg max-w-md w-full p-6">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-xl font-bold">Add Friend</h3>
-                            <button onClick={() => setShowAddModal(false)} className="text-gray-500 hover:text-gray-700">
-                                <FiX className="text-xl" />
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+                    <div className="bg-white rounded-[2rem] max-w-md w-full p-10 shadow-2xl border border-slate-100 relative">
+                        <div className="flex justify-between items-center mb-8 text-center">
+                            <div className="flex-1">
+                                <h3 className="text-2xl font-bold text-slate-900">Add friend</h3>
+                                <p className="text-[10px] font-bold uppercase text-slate-400 tracking-widest mt-1">Register new contact</p>
+                            </div>
+                            <button onClick={() => setShowAddModal(false)} className="absolute top-8 right-8 text-slate-400 hover:text-slate-900 transition-colors">
+                                <FiX size={20} />
                             </button>
                         </div>
-                        <form onSubmit={handleAddContact}>
+                        <form onSubmit={handleAddContact} className="space-y-6">
                             <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase text-slate-400 ml-1 tracking-widest">Contact name</label>
                                     <input
                                         type="text"
                                         required
-                                        className="w-full p-2 border rounded focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                                        className="w-full bg-slate-50 border border-slate-100 px-6 py-4 rounded-xl outline-none focus:ring-4 focus:ring-slate-900/5 transition-all font-medium placeholder:text-slate-300"
+                                        placeholder="Full name"
                                         value={newContact.name}
                                         onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase text-slate-400 ml-1 tracking-widest">Email address</label>
                                     <input
                                         type="email"
                                         required
-                                        className="w-full p-2 border rounded focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                                        className="w-full bg-slate-50 border border-slate-100 px-6 py-4 rounded-xl outline-none focus:ring-4 focus:ring-slate-900/5 transition-all font-medium placeholder:text-slate-300"
+                                        placeholder="friend@example.com"
                                         value={newContact.email}
                                         onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
                                     />
                                 </div>
-                                <button
-                                    type="submit"
-                                    className="w-full bg-primary-600 text-white py-2 rounded hover:bg-primary-700 transition-colors"
-                                >
-                                    Save Friend
-                                </button>
                             </div>
+                            <button
+                                type="submit"
+                                className="w-full btn btn-primary py-5 rounded-xl shadow-xl shadow-slate-900/10 font-bold uppercase tracking-widest text-xs"
+                            >
+                                Save contact
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -182,45 +191,49 @@ const MessageFriends = () => {
 
             {/* Send Message Modal */}
             {showMessageModal && selectedContact && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-                    <div className="bg-white rounded-lg max-w-lg w-full p-6">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-xl font-bold">Message to {selectedContact.name}</h3>
-                            <button onClick={() => setShowMessageModal(false)} className="text-gray-500 hover:text-gray-700">
-                                <FiX className="text-xl" />
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+                    <div className="bg-white rounded-[2rem] max-w-lg w-full p-10 shadow-2xl border border-slate-100 relative">
+                        <div className="flex justify-between items-center mb-8 text-center">
+                            <div className="flex-1 pr-12">
+                                <h3 className="text-2xl font-bold text-slate-900 truncate">Message to {selectedContact.name}</h3>
+                                <p className="text-[10px] font-bold uppercase text-slate-400 tracking-widest mt-1">Send email message</p>
+                            </div>
+                            <button onClick={() => setShowMessageModal(false)} className="absolute top-8 right-8 text-slate-400 hover:text-slate-900 transition-colors">
+                                <FiX size={20} />
                             </button>
                         </div>
-                        <form onSubmit={handleSendMessage}>
+                        <form onSubmit={handleSendMessage} className="space-y-6">
                             <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase text-slate-400 ml-1 tracking-widest">Subject</label>
                                     <input
                                         type="text"
                                         required
-                                        className="w-full p-2 border rounded focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                                        className="w-full bg-slate-50 border border-slate-100 px-6 py-4 rounded-xl outline-none focus:ring-4 focus:ring-slate-900/5 transition-all font-medium placeholder:text-slate-300"
+                                        placeholder="Message subject"
                                         value={messageData.subject}
                                         onChange={(e) => setMessageData({ ...messageData, subject: e.target.value })}
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase text-slate-400 ml-1 tracking-widest">Message content</label>
                                     <textarea
                                         required
-                                        rows="4"
-                                        className="w-full p-2 border rounded focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                                        rows="6"
+                                        className="w-full bg-slate-50 border border-slate-100 px-6 py-4 rounded-xl outline-none focus:ring-4 focus:ring-slate-900/5 transition-all font-medium placeholder:text-slate-300 resize-none pt-4"
                                         value={messageData.message}
                                         onChange={(e) => setMessageData({ ...messageData, message: e.target.value })}
-                                        placeholder="Write your message here. It will be sent as an email."
+                                        placeholder="Write your message here..."
                                     ></textarea>
                                 </div>
-                                <button
-                                    type="submit"
-                                    disabled={sending}
-                                    className="w-full bg-primary-600 text-white py-2 rounded hover:bg-primary-700 transition-colors disabled:bg-gray-400"
-                                >
-                                    {sending ? 'Sending...' : 'Send Email'}
-                                </button>
                             </div>
+                            <button
+                                type="submit"
+                                disabled={sending}
+                                className="w-full btn btn-primary py-5 rounded-xl shadow-xl shadow-slate-900/10 font-bold uppercase tracking-widest text-xs disabled:bg-slate-300"
+                            >
+                                {sending ? 'Sending...' : 'Send message'}
+                            </button>
                         </form>
                     </div>
                 </div>

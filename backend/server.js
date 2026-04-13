@@ -77,7 +77,9 @@ const startServer = async () => {
   }
 };
 
-startServer();
+if (process.env.NODE_ENV !== 'test') {
+  startServer();
+}
 
 // Initialize Socket.IO
 const io = new Server(server, {
@@ -235,8 +237,12 @@ server.on('error', (err) => {
   }
 });
 
-server.listen(PORT, () => {
-  console.log(`Server connected to socket running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  server.listen(PORT, () => {
+    console.log(`Server connected to socket running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
+}
+
+module.exports = { app, server };
 

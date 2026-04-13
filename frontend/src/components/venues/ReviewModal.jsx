@@ -48,58 +48,58 @@ const ReviewModal = ({ isOpen, onClose, onSuccess, bookingId, venueId }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in">
-            <div className="bg-white rounded-2xl w-full max-w-md p-6 relative animate-scale-up">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4">
+            <div className="bg-white rounded-3xl w-full max-w-md p-8 relative animate-scale-up border border-gray-100 shadow-2xl">
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-xl"
                 >
                     <FiX size={24} />
                 </button>
 
-                <h2 className="text-2xl font-bold mb-6 text-gray-800">Rate this Venue</h2>
+                <h2 className="text-3xl font-bold mb-8 text-gray-900 uppercase tracking-tight">Rate Your Experience</h2>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-8">
                     {/* Star Rating */}
-                    <div className="flex flex-col items-center gap-2">
-                        <div className="flex gap-2">
+                    <div className="flex flex-col items-center gap-4 bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                        <div className="flex gap-3">
                             {[1, 2, 3, 4, 5].map((star) => (
                                 <button
                                     key={star}
                                     type="button"
-                                    className="transition-transform hover:scale-110 focus:outline-none"
+                                    className="transition-transform hover:scale-125 focus:outline-none"
                                     onMouseEnter={() => setHoverRating(star)}
                                     onMouseLeave={() => setHoverRating(0)}
                                     onClick={() => setRating(star)}
                                 >
                                     <FiStar
-                                        size={32}
+                                        size={36}
                                         className={`transition-colors ${star <= (hoverRating || rating)
-                                            ? 'fill-yellow-400 text-yellow-400'
+                                            ? 'fill-yellow-400 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]'
                                             : 'text-gray-300'
                                             }`}
                                     />
                                 </button>
                             ))}
                         </div>
-                        <p className="text-sm font-medium text-gray-500">
-                            {rating === 0 ? 'Select a rating' :
+                        <p className="text-xs font-bold uppercase tracking-widest text-primary-600">
+                            {rating === 0 ? 'Select Rating' :
                                 rating === 1 ? 'Poor' :
                                     rating === 2 ? 'Fair' :
                                         rating === 3 ? 'Good' :
-                                            rating === 4 ? 'Very Good' : 'Excellent'}
+                                            rating === 4 ? 'Great' : 'Excellent'}
                         </p>
                     </div>
 
                     {/* Comment */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Share your experience (optional)
+                        <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">
+                            Your Comments (Optional)
                         </label>
                         <textarea
-                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow resize-none"
+                            className="w-full px-5 py-4 rounded-2xl border border-gray-200 bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all resize-none shadow-inner font-medium"
                             rows={4}
-                            placeholder="Tell us what you liked or didn't like..."
+                            placeholder="Share your experience..."
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                         />
@@ -107,17 +107,17 @@ const ReviewModal = ({ isOpen, onClose, onSuccess, bookingId, venueId }) => {
 
                     {/* Image Upload */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Add Photos (optional)
+                        <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">
+                            Add Images (Optional)
                         </label>
                         <div className="flex items-center justify-center w-full">
-                            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                            <label className="flex flex-col items-center justify-center w-full h-36 border-2 border-gray-200 border-dashed rounded-2xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all group shadow-inner">
                                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                    <FiUpload className="w-8 h-8 mb-3 text-gray-400" />
-                                    <p className="text-sm text-gray-500">
-                                        <span className="font-semibold">Click to upload</span> or drag and drop
+                                    <FiUpload className="w-10 h-10 mb-3 text-gray-300 group-hover:text-primary-500 transition-colors" />
+                                    <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1">
+                                        Upload Photos
                                     </p>
-                                    <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                                    <p className="text-[10px] text-gray-400 font-bold">UP TO 5MB</p>
                                 </div>
                                 <input
                                     type="file"
@@ -129,20 +129,23 @@ const ReviewModal = ({ isOpen, onClose, onSuccess, bookingId, venueId }) => {
                             </label>
                         </div>
                         {images.length > 0 && (
-                            <p className="mt-2 text-sm text-green-600 font-medium text-center">
-                                {images.length} image(s) selected
-                            </p>
+                            <div className="mt-4 p-3 bg-green-50 border border-green-100 rounded-xl flex items-center justify-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                                <p className="text-[10px] text-green-700 font-bold uppercase tracking-widest">
+                                    {images.length} Image(s) selected
+                                </p>
+                            </div>
                         )}
                     </div>
 
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-lg shadow transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                        className="w-full py-4 px-6 bg-primary-600 hover:bg-primary-700 text-white font-bold uppercase tracking-widest text-sm rounded-2xl shadow-xl shadow-primary-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center active:scale-[0.98]"
                     >
                         {loading ? (
                             <>
-                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white mr-3"></div>
                                 Submitting...
                             </>
                         ) : (

@@ -61,6 +61,10 @@ exports.createReview = async (req, res, next) => {
       images,
     });
 
+    // Mark booking as reviewed
+    booking.isReviewed = true;
+    await booking.save();
+
     // Update venue rating
     await updateVenueRating(booking.venue);
 

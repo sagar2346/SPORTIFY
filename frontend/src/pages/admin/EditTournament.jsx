@@ -9,6 +9,7 @@ const EditTournament = () => {
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
     const [venues, setVenues] = useState([]);
+    const [currentImage, setCurrentImage] = useState('');
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -18,6 +19,7 @@ const EditTournament = () => {
         registrationDeadline: '',
         maxTeams: 8,
         entryFee: 0,
+        registrationType: 'team',
         venue: '',
         status: 'open',
         location: {
@@ -40,6 +42,7 @@ const EditTournament = () => {
             setVenues(venueRes.data.data || []);
 
             const t = tournamentRes.data.data;
+            setCurrentImage(t.image || '');
             setFormData({
                 name: t.name,
                 description: t.description,
@@ -49,6 +52,7 @@ const EditTournament = () => {
                 registrationDeadline: new Date(t.registrationDeadline).toISOString().split('T')[0],
                 maxTeams: t.maxTeams,
                 entryFee: t.entryFee,
+                registrationType: t.registrationType || 'team',
                 venue: t.venue?._id || '',
                 status: t.status,
                 location: t.location || { address: '', city: '' }
@@ -181,6 +185,23 @@ const EditTournament = () => {
                         </div>
 
                         <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Registration Type</label>
+                            <select
+                                name="registrationType"
+                                required
+                                className="input w-full font-bold"
+                                value={formData.registrationType}
+                                onChange={handleChange}
+                            >
+                                <option value="team">Team-based (Groups)</option>
+                                <option value="solo">Individual-based (Solo)</option>
+                            </select>
+                            <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-widest">
+                                {formData.registrationType === 'team' ? 'Requires teams to register' : 'Users register directly'}
+                            </p>
+                        </div>
+
+                        <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Sport Type</label>
                             <select
                                 name="sportType"
@@ -192,10 +213,41 @@ const EditTournament = () => {
                                 <option value="football">Football</option>
                                 <option value="futsal">Futsal</option>
                                 <option value="basketball">Basketball</option>
-                                <option value="cricket">Cricket</option>
+                                <option value="tennis">Tennis</option>
                                 <option value="badminton">Badminton</option>
+                                <option value="swimming">Swimming</option>
+                                <option value="volleyball">Volleyball</option>
+                                <option value="cricket">Cricket</option>
+                                <option value="gym">Gym</option>
+                                <option value="table_tennis">Table Tennis</option>
+                                <option value="other">Other</option>
                             </select>
                         </div>
+
+                        {!formData.venue && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Tournament Poster / Image</label>
+                                {currentImage && (
+                                    <div className="mb-4 relative group">
+                                        <img 
+                                            src={`http://localhost:5001${currentImage}`} 
+                                            alt="Current" 
+                                            className="w-full h-32 object-cover rounded-xl border border-gray-100"
+                                        />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center">
+                                            <p className="text-white text-[10px] font-bold uppercase tracking-widest">Change Photo</p>
+                                        </div>
+                                    </div>
+                                )}
+                                <input
+                                    type="file"
+                                    name="image"
+                                    accept="image/*"
+                                    onChange={(e) => setFormData({ ...formData, image: e.target.files[0] })}
+                                    className="input w-full"
+                                />
+                            </div>
+                        )}
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
@@ -214,7 +266,9 @@ const EditTournament = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Max Teams</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {formData.registrationType === 'solo' ? 'Max Participants' : 'Max Teams'}
+                            </label>
                             <input
                                 type="number"
                                 name="maxTeams"

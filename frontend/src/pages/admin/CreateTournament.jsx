@@ -16,6 +16,7 @@ const CreateTournament = () => {
         registrationDeadline: '',
         maxTeams: 8,
         entryFee: 0,
+        registrationType: 'team',
         venue: '',
         location: {
             address: '',
@@ -71,7 +72,7 @@ const CreateTournament = () => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="animate-fade-in">
             <div className="card">
                 <h1 className="text-2xl font-bold mb-6">Create New Tournament</h1>
 
@@ -152,6 +153,23 @@ const CreateTournament = () => {
                         </div>
 
                         <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Registration Type</label>
+                            <select
+                                name="registrationType"
+                                required
+                                className="input w-full font-bold"
+                                value={formData.registrationType}
+                                onChange={handleChange}
+                            >
+                                <option value="team">Team-based (Groups)</option>
+                                <option value="solo">Individual-based (Solo)</option>
+                            </select>
+                            <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-widest">
+                                {formData.registrationType === 'team' ? 'Requires teams to register' : 'Users register directly'}
+                            </p>
+                        </div>
+
+                        <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Sport Type</label>
                             <select
                                 name="sportType"
@@ -163,13 +181,35 @@ const CreateTournament = () => {
                                 <option value="football">Football</option>
                                 <option value="futsal">Futsal</option>
                                 <option value="basketball">Basketball</option>
-                                <option value="cricket">Cricket</option>
+                                <option value="tennis">Tennis</option>
                                 <option value="badminton">Badminton</option>
+                                <option value="swimming">Swimming</option>
+                                <option value="volleyball">Volleyball</option>
+                                <option value="cricket">Cricket</option>
+                                <option value="gym">Gym</option>
+                                <option value="table_tennis">Table Tennis</option>
+                                <option value="other">Other</option>
                             </select>
                         </div>
 
+                        {!formData.venue && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Tournament Poster / Image</label>
+                                <input
+                                    type="file"
+                                    name="image"
+                                    accept="image/*"
+                                    onChange={(e) => setFormData({ ...formData, image: e.target.files[0] })}
+                                    className="input w-full"
+                                />
+                                <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-widest">Recommended size: 1200x600px</p>
+                            </div>
+                        )}
+
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Max Teams</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {formData.registrationType === 'solo' ? 'Max Participants' : 'Max Teams'}
+                            </label>
                             <input
                                 type="number"
                                 name="maxTeams"

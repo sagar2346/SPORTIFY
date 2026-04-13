@@ -7,7 +7,7 @@ import CustomerMessages from './admin/CustomerMessages';
 import KycVerificationRequests from './admin/KycVerificationRequests';
 import AdminFootage from './admin/AdminFootage';
 import ManageTournaments from './admin/ManageTournaments';
-import { FiUsers, FiMapPin, FiCalendar, FiDollarSign, FiMail, FiGrid, FiTrash2, FiCheck, FiVideo, FiAward } from 'react-icons/fi';
+import { FiUsers, FiMapPin, FiCalendar, FiDollarSign, FiMail, FiGrid, FiTrash2, FiCheck, FiVideo, FiAward, FiShield } from 'react-icons/fi';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -145,7 +145,7 @@ const AdminDashboard = () => {
     <div className="space-y-8 animate-fade-in">
       {/* Stats - Staggered Animation */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="card hover:-translate-y-1 transition-transform duration-300 border-l-4 border-l-indigo-500">
+        <div className="card hover:-translate-y-1 transition-transform duration-300 border-l-4 border-l-indigo-500 bg-white shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-500 font-medium text-sm uppercase tracking-wide">Total Users</p>
@@ -157,7 +157,7 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        <Link to="/venues" className="card hover:-translate-y-1 transition-transform duration-300 border-l-4 border-l-purple-500">
+        <Link to="/venues" className="card hover:-translate-y-1 transition-transform duration-300 border-l-4 border-l-purple-500 bg-white shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-500 font-medium text-sm uppercase tracking-wide">Total Venues</p>
@@ -169,7 +169,7 @@ const AdminDashboard = () => {
           </div>
         </Link>
 
-        <div className="card hover:-translate-y-1 transition-transform duration-300 border-l-4 border-l-blue-500">
+        <div className="card hover:-translate-y-1 transition-transform duration-300 border-l-4 border-l-blue-500 bg-white shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-500 font-medium text-sm uppercase tracking-wide">Total Bookings</p>
@@ -181,7 +181,7 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        <div className="card hover:-translate-y-1 transition-transform duration-300 border-l-4 border-l-emerald-500">
+        <div className="card hover:-translate-y-1 transition-transform duration-300 border-l-4 border-l-emerald-500 bg-white shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-500 font-medium text-sm uppercase tracking-wide">Total Revenue</p>
@@ -196,7 +196,7 @@ const AdminDashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Payment Verification Requests */}
-        <div className="card overflow-hidden border-orange-100/50">
+        <div className="card overflow-hidden border-orange-100/50 bg-white">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-800 flex items-center">
               <span className="w-2 h-8 bg-orange-500 rounded-full mr-3"></span>
@@ -218,9 +218,9 @@ const AdminDashboard = () => {
                 <div key={booking._id} className="p-4 border border-gray-100 rounded-xl bg-gradient-to-r from-orange-50/30 to-transparent hover:shadow-md transition-all">
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <h3 className="font-bold text-gray-900">{booking.venue.name}</h3>
+                      <h3 className="font-bold text-gray-900">{booking.venue?.name || 'Deleted Venue'}</h3>
                       <p className="text-sm text-gray-500 flex items-center mt-1">
-                        By <span className="font-medium text-gray-900 ml-1">{booking.user.name}</span>
+                        By <span className="font-medium text-gray-900 ml-1">{booking.user?.name || 'Unknown User'}</span>
                       </p>
                     </div>
                     <div className="text-right">
@@ -244,7 +244,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Pending Venues */}
-        <div className="card overflow-hidden border-indigo-100/50">
+        <div className="card overflow-hidden border-indigo-100/50 bg-white">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-800 flex items-center">
               <span className="w-2 h-8 bg-indigo-500 rounded-full mr-3"></span>
@@ -268,7 +268,7 @@ const AdminDashboard = () => {
                     <div>
                       <h3 className="font-bold text-gray-900">{venue.name}</h3>
                       <p className="text-sm text-gray-500 mt-1">
-                        Owner: <span className="font-medium text-gray-900">{venue.owner.name}</span>
+                        Owner: <span className="font-medium text-gray-900">{venue.owner?.name || 'Deleted Owner'}</span>
                       </p>
                     </div>
                   </div>
@@ -286,13 +286,13 @@ const AdminDashboard = () => {
       </div>
 
       {/* Revenue Statement */}
-      <div className="card overflow-hidden border-emerald-100/50">
+      <div className="card overflow-hidden border-emerald-100/50 bg-white">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-800 flex items-center">
             <span className="w-2 h-8 bg-emerald-500 rounded-full mr-3"></span>
             Revenue Details
           </h2>
-          <button onClick={handleExportReport} className="text-sm text-emerald-600 font-medium hover:text-emerald-700">Export Report</button>
+          <button onClick={handleExportReport} className="text-sm text-emerald-600 font-medium hover:text-emerald-700 transition-colors">Export Report</button>
         </div>
 
         {!revenueData || revenueData.length === 0 ? (
@@ -349,79 +349,54 @@ const AdminDashboard = () => {
   );
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <div className="w-64 bg-white shadow-md">
-        <div className="p-6">
-          <h1 className="text-2xl font-bold text-gray-800">Admin Panel</h1>
-        </div>
-        <nav className="mt-6 px-4 space-y-2">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${activeTab === 'overview' ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'
-              }`}
-          >
-            <FiGrid className="mr-3 h-5 w-5" />
-            Dashboard
-          </button>
-          <button
-            onClick={() => setActiveTab('messages')}
-            className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${activeTab === 'messages' ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'
-              }`}
-          >
-            <FiMail className="mr-3 h-5 w-5" />
-            Customer Messages
-          </button>
-          <button
-            onClick={() => setActiveTab('kyc')}
-            className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${activeTab === 'kyc' ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'
-              }`}
-          >
-            <FiCheck className="mr-3 h-5 w-5" />
-            KYC Verification
-          </button>
-          <button
-            onClick={() => setActiveTab('footage')}
-            className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${activeTab === 'footage' ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'
-              }`}
-          >
-            <FiVideo className="mr-3 h-5 w-5" />
-            Game Footage Analysis
-          </button>
-          <button
-            onClick={() => setActiveTab('tournaments')}
-            className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${activeTab === 'tournaments' ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'
-              }`}
-          >
-            <FiAward className="mr-3 h-5 w-5" />
-            Manage Tournaments
-          </button>
-          <Link to="/admin/users" className="w-full flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md">
-            <FiUsers className="mr-3 h-5 w-5" />
-            Manage Users
-          </Link>
-        </nav>
+    <div className="animate-fade-in">
+      {/* Header Section */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">
+          Welcome Back, Admin
+        </h1>
+        <p className="text-gray-500 mt-2 text-lg">Here's what's happening with your platform today.</p>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto bg-gray-50/50 p-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Header Section */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-              Welcome back, Admin
-            </h1>
-            <p className="text-gray-500 mt-2 text-lg">Here's what's happening with your platform today.</p>
-          </div>
-
-          {activeTab === 'overview' && renderOverview()}
-          {activeTab === 'messages' && <CustomerMessages />}
-          {activeTab === 'kyc' && <KycVerificationRequests />}
-          {activeTab === 'footage' && <AdminFootage />}
-          {activeTab === 'tournaments' && <ManageTournaments />}
-        </div>
+      <div className="mb-6 flex space-x-2 bg-white p-1 rounded-xl shadow-sm border border-gray-100 inline-flex">
+        <button
+          onClick={() => setActiveTab('overview')}
+          className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'overview' ? 'bg-primary-50 text-primary-600 shadow-sm' : 'text-gray-500 hover:bg-gray-50'}`}
+        >
+          Overview
+        </button>
+        <button
+          onClick={() => setActiveTab('messages')}
+          className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'messages' ? 'bg-primary-50 text-primary-600 shadow-sm' : 'text-gray-500 hover:bg-gray-50'}`}
+        >
+          Messages
+        </button>
+        <button
+          onClick={() => setActiveTab('kyc')}
+          className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'kyc' ? 'bg-primary-50 text-primary-600 shadow-sm' : 'text-gray-500 hover:bg-gray-50'}`}
+        >
+          KYC
+        </button>
+        <button
+          onClick={() => setActiveTab('footage')}
+          className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'footage' ? 'bg-primary-50 text-primary-600 shadow-sm' : 'text-gray-500 hover:bg-gray-50'}`}
+        >
+          Footage
+        </button>
+        <button
+          onClick={() => setActiveTab('tournaments')}
+          className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'tournaments' ? 'bg-primary-50 text-primary-600 shadow-sm' : 'text-gray-500 hover:bg-gray-50'}`}
+        >
+          Tournaments
+        </button>
       </div>
-    </div >
+
+      {activeTab === 'overview' && renderOverview()}
+      {activeTab === 'messages' && <CustomerMessages />}
+      {activeTab === 'kyc' && <KycVerificationRequests />}
+      {activeTab === 'footage' && <AdminFootage />}
+      {activeTab === 'tournaments' && <ManageTournaments />}
+    </div>
   );
 };
 

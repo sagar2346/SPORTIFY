@@ -78,7 +78,7 @@ const sports = [
         id: 'gym',
         name: 'GYM',
         icon: <MdFitnessCenter className="w-16 h-16" />,
-        color: 'bg-slate-700',
+        color: 'bg-gray-700',
         description: 'Professional gym facilities and trainers',
         image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80'
     }
@@ -86,14 +86,14 @@ const sports = [
 
 const SportsSelection = () => {
     return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
             <div className="max-w-7xl mx-auto">
-                <div className="text-center mb-16">
-                    <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
-                        Choose Your <span className="text-primary-600">Sport</span>
+                <div className="text-center mb-16 px-4">
+                    <h1 className="text-4xl md:text-6xl font-bold text-slate-900 tracking-tight leading-tight">
+                        Select your sport
                     </h1>
-                    <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-500">
-                        Select a sport to find the perfect venue. Professional courts and grounds waiting for you.
+                    <p className="mt-4 max-w-xl mx-auto text-lg text-slate-500 font-medium">
+                        Professional courts and grounds waiting for you.
                     </p>
                 </div>
 
@@ -113,21 +113,21 @@ const SportsSelection = () => {
                             </div>
 
                             {/* Content */}
-                            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-                                <div className={`p-4 rounded-full bg-white/10 backdrop-blur-sm mb-4 transform transition-transform duration-500 group-hover:scale-110 group-hover:bg-white/20 text-white`}>
+                            <div className="absolute inset-x-0 bottom-0 top-0 flex flex-col items-center justify-center p-8 text-center bg-slate-900/40 backdrop-blur-[2px] group-hover:bg-slate-900/30 transition-all duration-500">
+                                <div className={`p-5 rounded-2xl bg-white/20 backdrop-blur-md mb-6 transform transition-transform duration-700 group-hover:scale-110 text-white shadow-xl`}>
                                     {sport.icon}
                                 </div>
 
-                                <h3 className="text-3xl font-bold text-white mb-2 tracking-wide group-hover:text-primary-400 transition-colors">
+                                <h3 className="text-3xl font-bold text-white mb-3 tracking-tight group-hover:scale-105 transition-transform duration-500">
                                     {sport.name}
                                 </h3>
 
-                                <p className="text-gray-200 text-lg opacity-0 transform translate-y-4 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0">
+                                <p className="text-white/80 text-sm font-medium opacity-0 transform translate-y-4 transition-all duration-500 group-hover:opacity-100 group-hover:translate-y-0 max-w-[200px]">
                                     {sport.description}
                                 </p>
 
-                                <div className="mt-6 px-6 py-2 bg-primary-600 text-white font-semibold rounded-full opacity-0 transform translate-y-4 transition-all duration-300 delay-100 group-hover:opacity-100 group-hover:translate-y-0 hover:bg-primary-700">
-                                    Book Now
+                                <div className="mt-8 px-8 py-3 bg-white text-slate-900 font-bold uppercase tracking-widest text-[10px] rounded-xl opacity-0 transform translate-y-4 transition-all duration-500 group-hover:opacity-100 group-hover:translate-y-0 hover:bg-slate-50 shadow-2xl">
+                                    Book now
                                 </div>
                             </div>
                         </Link>

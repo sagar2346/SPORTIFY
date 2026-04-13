@@ -31,14 +31,12 @@ const EditVenue = () => {
     const handleSubmit = async (formData, newImages) => {
         setSaving(true);
         try {
-            const data = { ...formData, images: newImages };
-            // Remove 'images' array of strings from data because create/update Venue expects images to be passed differently or handled by backend, 
-            // but here we are sending newImages as files. 
-            // The API service logic for updateVenue uses FormData, so we need to be careful.
-            // The service implementation handles appending keys.
-            // Existing images are inside formData.images (strings). New images are in newImages (File objects).
-            // We pass both. The backend should be smart enough or we rely on the service to handle it.
-            // Re-reading service: it iterates keys. Arrays are appended item by item.
+            // formData.images contains the existing image paths (strings)
+            // newImages contains the new File objects
+            const data = { 
+                ...formData, 
+                venueImages: newImages // Send new files under venueImages
+            };
 
             await venueService.updateVenue(id, data);
             toast.success('Venue updated successfully!');

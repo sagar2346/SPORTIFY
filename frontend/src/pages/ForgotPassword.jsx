@@ -26,18 +26,18 @@ const ForgotPassword = () => {
     if (submitted) {
         return (
             <div className="min-h-screen auth-bg flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-md w-full glass rounded-2xl p-8 space-y-8 text-center animate-fade-in">
-                    <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-emerald-100">
-                        <svg className="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="max-w-md w-full bg-white rounded-2xl p-8 space-y-8 text-center animate-fade-in border border-gray-100 shadow-2xl">
+                    <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-2xl bg-primary-100 text-primary-600 shadow-lg">
+                        <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-800">Check your email</h2>
-                    <p className="text-gray-600">
-                        We've sent a password reset link to <span className="font-semibold">{email}</span>.
+                    <h2 className="text-3xl font-bold text-gray-900">Check Your Email</h2>
+                    <p className="text-gray-600 font-medium">
+                        A password reset link has been sent to <span className="font-bold text-primary-600 italic">{email}</span>.
                     </p>
-                    <div className="mt-6">
-                        <Link to="/login" className="btn btn-primary w-full shadow-lg">
+                    <div className="mt-8">
+                        <Link to="/login" className="btn btn-primary w-full shadow-xl shadow-primary-500/20 active:scale-95">
                             Return to Login
                         </Link>
                     </div>
@@ -48,21 +48,19 @@ const ForgotPassword = () => {
 
     return (
         <div className="min-h-screen auth-bg flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full glass rounded-2xl p-8 space-y-8 animate-fade-in relative overflow-hidden">
-                <div className="absolute -top-10 -right-10 w-32 h-32 bg-emerald-400 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-
+            <div className="max-w-md w-full bg-white rounded-2xl p-8 space-y-8 animate-fade-in relative overflow-hidden border border-gray-100 shadow-2xl">
                 <div className="relative z-10 text-center">
-                    <h2 className="text-4xl font-black text-gray-900 tracking-tight">
-                        Sport<span className="text-emerald-600">Booking</span>
+                    <h2 className="text-4xl font-bold text-gray-900">
+                        Sportify
                     </h2>
                     <h2 className="mt-4 text-2xl font-bold text-gray-800">Forgot Password?</h2>
                     <p className="mt-2 text-sm text-gray-600">
-                        Enter your email address and we'll send you a link to reset your password.
+                        Enter your email address to reset your password.
                     </p>
 
                     <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="email" className="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-3 text-left">
                                 Email Address
                             </label>
                             <input
@@ -81,14 +79,14 @@ const ForgotPassword = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="btn btn-primary w-full shadow-lg transform hover:-translate-y-0.5 transition-all"
+                                className="btn btn-primary w-full shadow-lg hover:shadow-xl transform active:scale-95 transition-all text-sm font-bold"
                             >
-                                {loading ? 'Sending...' : 'Send Reset Link'}
+                                {loading ? 'Sending link...' : 'Reset Password'}
                             </button>
                         </div>
 
                         <div className="text-center">
-                            <Link to="/login" className="text-sm font-medium text-emerald-600 hover:text-emerald-500">
+                            <Link to="/login" className="text-xs font-bold uppercase tracking-widest text-primary-600 hover:text-primary-500 transition-colors">
                                 Back to login
                             </Link>
                         </div>

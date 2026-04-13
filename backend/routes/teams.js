@@ -6,9 +6,16 @@ const {
     getMyTeams,
     getTeamMessages,
     uploadVoiceMessage,
-    getTeam
+    getTeam,
+    addAdminToTeam,
+    leaveTeam,
+    kickMember,
+    payTeamFine,
+    deleteTeamMessage,
+    deleteTeam
 } = require('../controllers/teamController');
 const { protect } = require('../middleware/auth');
+const { checkTeamBlock } = require('../middleware/blockMiddleware');
 const multer = require('multer');
 const path = require('path');
 
@@ -30,6 +37,12 @@ router.post('/join', joinTeam);
 router.get('/', getMyTeams);
 router.get('/:id', getTeam);
 router.get('/:id/messages', getTeamMessages);
-router.post('/:id/voice', upload.single('audio'), uploadVoiceMessage);
+router.post('/:id/voice', checkTeamBlock, upload.single('audio'), uploadVoiceMessage);
+router.post('/:id/add-admin', addAdminToTeam);
+router.post('/:id/leave', leaveTeam);
+router.post('/:id/kick/:userId', kickMember);
+router.post('/:id/pay-fine', payTeamFine);
+router.delete('/:id', deleteTeam);
+router.delete('/messages/:messageId', deleteTeamMessage);
 
 module.exports = router;

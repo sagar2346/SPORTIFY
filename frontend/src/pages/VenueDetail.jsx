@@ -258,10 +258,10 @@ const VenueDetail = () => {
                       <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center">
                           <div className="w-14 h-14 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-bold text-xl mr-5 shadow-2xl shadow-slate-900/10">
-                            {review.user.name.charAt(0).toUpperCase()}
+                            {(review.user?.name || 'A').charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <h4 className="font-bold text-slate-900 text-lg tracking-tight">{review.user.name}</h4>
+                            <h4 className="font-bold text-slate-900 text-lg tracking-tight">{review.user?.name || 'Anonymous Player'}</h4>
                             <div className="flex items-center mt-2">
                               {[...Array(5)].map((_, i) => (
                                 <FiStar

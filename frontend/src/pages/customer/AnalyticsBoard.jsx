@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react';
 import { userService } from '../../services/api';
-import { FiActivity, FiAward, FiDollarSign, FiUsers } from 'react-icons/fi';
+import { FiActivity, FiAward, FiDollarSign, FiUsers, FiTrendingUp, FiArrowRight } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { staggerContainer, listItemVariants, fadeIn } from '../../utils/motion';
+import {
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+    PieChart, Pie, Cell, Legend
+} from 'recharts';
 
 const AnalyticsBoard = () => {
     const [analytics, setAnalytics] = useState(null);
@@ -31,78 +37,175 @@ const AnalyticsBoard = () => {
     }
 
     if (!analytics) {
-        return <div className="p-8 text-center text-gray-500">Failed to load statistics.</div>;
+        return <div className="p-12 text-center text-gray-500 font-bold bg-white rounded-3xl border border-dashed border-gray-200 shadow-sm">No game played.</div>;
     }
 
+    const chartData = analytics.weeklyStats || [];
+    const sportDistribution = analytics.sportDistribution || [];
+    const hasData = chartData.some(d => d.bookings > 0) || sportDistribution.length > 0;
+
+    const COLORS = ['#0ea5e9', '#10b981', '#6366f1', '#f59e0b', '#ec4899', '#8b5cf6'];
+
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="flex justify-between items-center mb-8">
+        <motion.div
+            initial="initial"
+            animate="animate"
+            className="space-y-12"
+        >
+            <div className="flex justify-between items-center mb-10">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">My Analytics</h1>
-                    <p className="text-gray-500 mt-1">Track your performance and activity.</p>
+                    <h1 className="text-3xl font-bold text-slate-900">Performance analytics</h1>
+                    <p className="text-sm text-slate-500 mt-1 font-medium">Real-time insights and activity tracking.</p>
                 </div>
-                <Link to="/" className="text-primary-600 hover:text-primary-700 font-medium">
-                    &larr; Back to Home
+                <Link to="/" className="text-slate-600 hover:text-slate-900 font-bold text-xs bg-slate-50 px-6 py-3 rounded-xl transition-all border border-slate-200">
+                    &larr; Return to home
                 </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                 {/* Total Bookings */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow">
-                    <div className="bg-blue-100 p-3 rounded-full mb-4">
-                        <FiActivity className="text-2xl text-blue-600" />
+                <div className="bg-white rounded-2xl border border-slate-100 p-8 flex flex-col items-center justify-center text-center shadow-sm">
+                    <div className="bg-slate-50 p-4 rounded-xl mb-6 text-slate-400">
+                        <FiActivity size={24} />
                     </div>
-                    <h3 className="text-gray-500 font-medium mb-1">Total Bookings</h3>
-                    <p className="text-3xl font-bold text-gray-900">{analytics.totalBookings}</p>
-                    <p className="text-sm text-gray-400 mt-1">{analytics.completedBookings} completed</p>
+                    <h3 className="text-slate-500 font-bold mb-1 uppercase text-[10px] tracking-widest">Total bookings</h3>
+                    <p className="text-4xl font-bold text-slate-900">{analytics.totalBookings}</p>
+                    <div className="mt-4 px-4 py-1 bg-slate-50 rounded-full border border-slate-100">
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{analytics.completedBookings} Completed</p>
+                    </div>
                 </div>
 
                 {/* Total Spent */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow">
-                    <div className="bg-green-100 p-3 rounded-full mb-4">
-                        <FiDollarSign className="text-2xl text-green-600" />
+                <div className="bg-white rounded-2xl border border-slate-100 p-8 flex flex-col items-center justify-center text-center shadow-sm">
+                    <div className="bg-slate-50 p-4 rounded-xl mb-6 text-slate-400">
+                        <FiDollarSign size={24} />
                     </div>
-                    <h3 className="text-gray-500 font-medium mb-1">Total Spent</h3>
-                    <p className="text-3xl font-bold text-gray-900">${analytics.totalSpent}</p>
-                    <p className="text-sm text-gray-400 mt-1">on venue bookings</p>
+                    <h3 className="text-slate-500 font-bold mb-1 uppercase text-[10px] tracking-widest">Total spent</h3>
+                    <p className="text-4xl font-bold text-slate-900">Rs. {analytics.totalSpent}</p>
+                    <div className="mt-4 px-4 py-1 bg-emerald-50 rounded-full border border-emerald-100">
+                        <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">Player account</p>
+                    </div>
                 </div>
 
                 {/* Teams Joined */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow">
-                    <div className="bg-purple-100 p-3 rounded-full mb-4">
-                        <FiUsers className="text-2xl text-purple-600" />
+                <div className="bg-white rounded-2xl border border-slate-100 p-8 flex flex-col items-center justify-center text-center shadow-sm">
+                    <div className="bg-slate-50 p-4 rounded-xl mb-6 text-slate-400">
+                        <FiUsers size={24} />
                     </div>
-                    <h3 className="text-gray-500 font-medium mb-1">Teams Joined</h3>
-                    <p className="text-3xl font-bold text-gray-900">{analytics.teamsJoined}</p>
-                    <p className="text-sm text-gray-400 mt-1">teams</p>
+                    <h3 className="text-slate-500 font-bold mb-1 uppercase text-[10px] tracking-widest">Teams joined</h3>
+                    <p className="text-4xl font-bold text-slate-900">{analytics.teamsJoined}</p>
+                    <div className="mt-4 px-4 py-1 bg-slate-50 rounded-full border border-slate-100">
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Active member</p>
+                    </div>
                 </div>
 
-                {/* Favorite Sport */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow">
-                    <div className="bg-amber-100 p-3 rounded-full mb-4">
-                        <FiAward className="text-2xl text-amber-600" />
+                {/* Primary Sport */}
+                <div className="bg-white rounded-2xl border border-slate-100 p-8 flex flex-col items-center justify-center text-center shadow-sm">
+                    <div className="bg-slate-50 p-4 rounded-xl mb-6 text-slate-400">
+                        <FiAward size={24} />
                     </div>
-                    <h3 className="text-gray-500 font-medium mb-1">Favorite Sport</h3>
-                    <p className="text-xl font-bold text-gray-900 capitalize truncate w-full" title={analytics.favoriteSport}>
+                    <h3 className="text-slate-500 font-bold mb-1 uppercase text-[10px] tracking-widest">Primary sport</h3>
+                    <p className="text-2xl font-bold text-slate-900 w-full truncate" title={analytics.favoriteSport}>
                         {analytics.favoriteSport}
                     </p>
-                    <p className="text-sm text-gray-400 mt-1">most played</p>
+                    <div className="mt-4 px-4 py-1 bg-slate-50 rounded-full border border-slate-100">
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Top category</p>
+                    </div>
                 </div>
+            </div>
+
+            {/* Charts Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                {/* Bar Chart */}
+                <div className="lg:col-span-2 bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
+                    <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-8">Booking activity</h3>
+                    <div className="h-80 w-full flex items-center justify-center">
+                        {chartData.some(d => d.bookings > 0) ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={chartData}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#71717a', fontSize: 10, fontWeight: 700 }} dy={10} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#71717a', fontSize: 10, fontWeight: 700 }} allowDecimals={false} />
+                                    <Tooltip
+                                        cursor={{ fill: '#f3f4f6' }}
+                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                    />
+                                    <Bar dataKey="bookings" fill="#0f172a" radius={[4, 4, 0, 0]} barSize={40} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="text-center py-10">
+                                <div className="bg-gray-50 rounded-full p-4 inline-block mb-3">
+                                    <FiActivity className="text-3xl text-gray-300" />
+                                </div>
+                                <p className="text-gray-400 font-medium">No booking activity this week</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Pie Chart */}
+                <motion.div variants={listItemVariants} className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
+                    <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-8">Sport distribution</h3>
+                    <div className="h-80 w-full flex items-center justify-center">
+                        {sportDistribution.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={sportDistribution}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={80}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                        animationBegin={200}
+                                        animationDuration={1500}
+                                        stroke="none"
+                                    >
+                                        {sportDistribution.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip
+                                        contentStyle={{ borderRadius: '16px', border: 'none', backgroundColor: '#000', color: '#fff', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase' }}
+                                    />
+                                    <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase' }} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="text-center py-10">
+                                <div className="bg-gray-50 rounded-3xl p-6 inline-block mb-3 border border-gray-100">
+                                    <FiAward className="text-4xl text-gray-300" />
+                                </div>
+                                <p className="text-xs font-bold text-gray-500 uppercase">No sports detected</p>
+                            </div>
+                        )}
+                    </div>
+                </motion.div>
             </div>
 
             {/* Insight / Suggestion */}
-            <div className="bg-gradient-to-r from-primary-600 to-primary-800 rounded-2xl p-8 text-white shadow-lg">
-                <div className="max-w-3xl">
-                    <h2 className="text-2xl font-bold mb-4">Keep it up! 🚀</h2>
-                    <p className="text-primary-100 text-lg mb-6">
-                        You've been active lately. Check out more venues or join new teams to boost your stats even further.
+            <div className="bg-slate-900 rounded-[2rem] p-8 md:p-12 text-white shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-primary-600/10 rounded-full -mr-48 -mt-48 blur-3xl" />
+
+                <div className="relative z-10 max-w-3xl">
+                    <div className="inline-flex items-center space-x-2 bg-white/5 px-4 py-1.5 rounded-full mb-6 border border-white/10">
+                        <FiTrendingUp className="text-emerald-400" size={14} />
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300">Live activity updates</span>
+                    </div>
+                    <h2 className="text-3xl md:text-4xl font-bold mb-4 leading-tight text-white">
+                        Keep it up, Champ!
+                    </h2>
+                    <p className="text-slate-400 text-lg mb-10 leading-relaxed font-medium">
+                        You've been incredibly active lately. Explore new venues or join emerging teams to reach the next level of your fitness journey.
                     </p>
-                    <Link to="/venues" className="inline-block bg-white text-primary-700 font-bold px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors">
-                        Find More Venues
+                    <Link to="/venues" className="btn bg-white text-slate-900 hover:bg-slate-100 px-8 py-4 rounded-xl text-xs font-bold uppercase tracking-widest inline-flex items-center group">
+                        Find more venues <FiArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                     </Link>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 };
 

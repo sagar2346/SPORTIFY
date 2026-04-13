@@ -29,7 +29,7 @@ exports.sendBookingConfirmation = async (booking) => {
             <p><strong>Venue:</strong> ${booking.venue.name}</p>
             <p><strong>Date:</strong> ${new Date(booking.bookingDate).toLocaleDateString()}</p>
             <p><strong>Time:</strong> ${booking.startTime} - ${booking.endTime}</p>
-            <p><strong>Total Price:</strong> $${booking.totalPrice}</p>
+            <p><strong>Total Price:</strong> Rs. ${booking.totalPrice}</p>
             <p><strong>Booking ID:</strong> ${booking._id}</p>
           </div>
           
@@ -66,7 +66,7 @@ exports.sendBookingCancellation = async (booking) => {
             <h3>Booking Details</h3>
             <p><strong>Venue:</strong> ${booking.venue.name}</p>
             <p><strong>Date:</strong> ${new Date(booking.bookingDate).toLocaleDateString()}</p>
-            <p><strong>Refund Amount:</strong> $${booking.cancellation.refundAmount || 0}</p>
+            <p><strong>Refund Amount:</strong> Rs. ${booking.cancellation.refundAmount || 0}</p>
           </div>
           
           <p>If you have any questions, please contact our support team.</p>
@@ -205,7 +205,7 @@ exports.sendFriendMessage = async (sender, recipientEmail, subject, message) => 
     await transporter.sendMail(mailOptions);
     console.log(`Friend message sent to ${recipientEmail}`);
   } catch (error) {
-    console.error('Error sending friend message:', error);
+    console.error(`Error sending friend message to ${recipientEmail}:`, error.code, error.message);
     throw error; // Re-throw to handle in controller
   }
 };

@@ -116,4 +116,28 @@ router.post('/:id/reply', [protect, authorize('admin')], async (req, res) => {
     }
 });
 
+// @route   DELETE /api/messages/:id
+// @desc    Delete a message
+// @access  Private/Admin
+router.delete('/:id', [protect, authorize('admin')], async (req, res) => {
+    try {
+        const message = await Message.findById(req.params.id);
+
+        if (!message) {
+            return res.status(404).json({ message: 'Message not found' });
+        }
+
+        await message.deleteOne();
+
+        res.json({ message: 'Message removed' });
+    } catch (err) {
+        console.error(err.message);
+        if (err.kind === 'ObjectId') {
+            return res.status(404).json({ message: 'Message not found' });
+        }
+        res.status(500).send('Server Error');
+    }
+});
+
 module.exports = router;
+

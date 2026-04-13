@@ -39,6 +39,7 @@ router.use(protect);
 router.post(
     '/upload',
     upload.fields([
+        { name: 'document', maxCount: 1 },
         { name: 'front', maxCount: 1 },
         { name: 'back', maxCount: 1 },
         { name: 'photo', maxCount: 1 }

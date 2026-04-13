@@ -1,7 +1,9 @@
 // Venue Controller for SPORTIFY
+const mongoose = require('mongoose');
 const Venue = require('../models/Venue');
 const Booking = require('../models/Booking');
 const Review = require('../models/Review');
+const User = require('../models/User');
 
 // @desc    Get all venues
 // @route   GET /api/venues
@@ -42,6 +44,68 @@ exports.getVenues = async (req, res, next) => {
 
     if (search) {
       query.$text = { $search: search };
+    }
+
+    // Date & Time Slot Filtering
+    if (req.query.date) {
+      const searchDate = new Date(req.query.date);
+      const searchDay = searchDate.toLocaleString('en-us', { weekday: 'long' }).toLowerCase();
+
+      // 1. Check if dates are blocked
+      const blockedVenues = await Venue.find({
+        blockedDates: {
+          $elemMatch: {
+            date: {
+              $gte: new Date(searchDate.setHours(0, 0, 0, 0)),
+              $lt: new Date(searchDate.setHours(23, 59, 59, 999))
+            }
+          }
+        }
+      }).select('_id');
+
+      const blockedVenueIds = blockedVenues.map(v => v._id);
+
+      // 2. Check existing bookings (Overlap check)
+      let bookedVenueIds = [];
+      if (req.query.startTime) {
+        const queryEndTime = req.query.endTime || (parseInt(req.query.startTime.split(':')[0]) + 1).toString().padStart(2, '0') + ':00';
+        const bookings = await Booking.find({
+          bookingDate: {
+            $gte: new Date(searchDate.setHours(0, 0, 0, 0)),
+            $lt: new Date(searchDate.setHours(23, 59, 59, 999))
+          },
+          status: { $in: ['pending', 'confirmed', 'completed'] },
+          $or: [
+            {
+              $and: [
+                { startTime: { $lt: queryEndTime } },
+                { endTime: { $gt: req.query.startTime } }
+              ]
+            }
+          ]
+        }).select('venue');
+
+        bookedVenueIds = bookings.map(b => b.venue);
+      }
+
+      // 3. Combine exclusions
+      const excludeIds = [...new Set([...blockedVenueIds, ...bookedVenueIds])];
+      if (excludeIds.length > 0) {
+        query._id = { $nin: excludeIds };
+      }
+
+      // 4. Time specific availability (if startTime provided)
+      if (req.query.startTime) {
+        query.timeSlots = {
+          $elemMatch: {
+            startTime: req.query.startTime,
+            isAvailable: true
+          }
+        };
+      }
+
+      // 5. Ensure venue is open on that day
+      query[`operatingHours.${searchDay}.isOpen`] = true;
     }
 
     // Pagination
@@ -107,6 +171,15 @@ exports.getVenue = async (req, res, next) => {
 // @access  Private (Venue Owner)
 exports.createVenue = async (req, res, next) => {
   try {
+    // Check KYC status for venue owners
+    const user = await User.findById(req.user.id);
+    if (user.role === 'venue_owner' && user.kycStatus !== 'verified') {
+      return res.status(403).json({
+        success: false,
+        message: 'Your account must be KYC verified before you can list a venue. Please complete verification in your profile.',
+      });
+    }
+
     // Construct location object from flat fields if location is not provided
     if (!req.body.location) {
       req.body.location = {
@@ -190,26 +263,39 @@ exports.updateVenue = async (req, res, next) => {
     }
 
     // Construct location object from flat fields if present
-    if (req.body.address || req.body.city || req.body.state) {
+    if (req.body.address || req.body.city || req.body.state || req.body.latitude || req.body.longitude) {
+      const currentLocation = venue.location || {};
+      const currentCoords = currentLocation.coordinates || {};
+
       req.body.location = {
-        address: req.body.address || venue.location.address,
-        city: req.body.city || venue.location.city,
-        state: req.body.state || venue.location.state,
-        zipCode: req.body.zipCode || venue.location.zipCode,
-        country: req.body.country || venue.location.country || 'Nepal',
+        address: req.body.address || currentLocation.address,
+        city: req.body.city || currentLocation.city,
+        state: req.body.state || currentLocation.state,
+        zipCode: req.body.zipCode || currentLocation.zipCode,
+        country: req.body.country || currentLocation.country || 'Nepal',
         coordinates: {
-          latitude: req.body.latitude || venue.location.coordinates?.latitude,
-          longitude: req.body.longitude || venue.location.coordinates?.longitude
+          latitude: req.body.latitude || currentCoords.latitude,
+          longitude: req.body.longitude || currentCoords.longitude
         }
       };
     }
 
     // Handle image uploads
     if (req.files && req.files.venueImages) {
-      const newImages = req.files.venueImages.map(
+      const newImagesPaths = req.files.venueImages.map(
         (file) => `/uploads/venues/${file.filename}`
       );
-      req.body.images = [...(venue.images || []), ...newImages];
+      
+      // If req.body.images is provided as existing images by frontend, use it.
+      // Otherwise default to current venue images.
+      let existingImages = [];
+      if (req.body.images) {
+        existingImages = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
+      } else {
+        existingImages = venue.images || [];
+      }
+
+      req.body.images = [...existingImages, ...newImagesPaths];
     }
 
     venue = await Venue.findByIdAndUpdate(req.params.id, req.body, {
@@ -303,14 +389,15 @@ exports.getAvailability = async (req, res, next) => {
     const existingBookings = await Booking.find({
       venue: req.params.id,
       bookingDate: bookingDate,
-      status: { $in: ['pending', 'confirmed'] },
+      status: { $in: ['pending', 'confirmed', 'completed'] },
     });
 
     // Filter available slots
     const availableSlots = venue.timeSlots.filter((slot) => {
+      // OVERLAP CHECK: If a booking starts before slot ends AND ends after slot starts
       const isBooked = existingBookings.some(
         (booking) =>
-          booking.startTime === slot.startTime && booking.endTime === slot.endTime
+          booking.startTime < slot.endTime && booking.endTime > slot.startTime
       );
       return slot.isAvailable && !isBooked;
     });
@@ -370,9 +457,24 @@ exports.blockDates = async (req, res, next) => {
 // @access  Private (Venue Owner)
 exports.getMyVenues = async (req, res, next) => {
   try {
-    const venues = await Venue.find({ owner: req.user.id }).sort({
-      createdAt: -1,
-    });
+    const venues = await Venue.aggregate([
+      { $match: { owner: new mongoose.Types.ObjectId(req.user.id) } },
+      {
+        $lookup: {
+          from: 'bookings',
+          localField: '_id',
+          foreignField: 'venue',
+          as: 'venueBookings'
+        }
+      },
+      {
+        $addFields: {
+          totalBookings: { $size: '$venueBookings' }
+        }
+      },
+      { $sort: { createdAt: -1 } },
+      { $project: { venueBookings: 0 } } // Remove the array of bookings to save bandwidth
+    ]);
 
     res.status(200).json({
       success: true,
