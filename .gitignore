@@ -6,6 +6,7 @@ frontend/.env
 *env*.js
 *env*.jsx
 *.md
+!README.md
 *.test.js
 *.test.jsx
 *.spec.js
