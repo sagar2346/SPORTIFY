@@ -93,12 +93,3 @@ npm run dev
 ## 🏗 Project Architecture
 
 SPORTIFY follows a MERN stack architecture with a focus on real-time event-driven communication. The backend serves a RESTful API and handles WebSocket connections for instant updates, while the frontend provides a rich, responsive interface with separate dashboards tailored to different user roles.
-
----
-
-## 📝 License
-This project is developed for academic/professional submission. Please check the `package.json` for specific dependency licensing.
-
----
-
-*Made with ❤️ for the Sports Community.*
