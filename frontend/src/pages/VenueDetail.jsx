@@ -311,8 +311,9 @@ const VenueDetail = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Start</label>
+                        <label htmlFor="start-time" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Start</label>
                         <select
+                          id="start-time"
                           className="w-full bg-white border border-slate-100 px-4 py-3.5 rounded-xl outline-none focus:ring-4 focus:ring-slate-900/5 transition-all font-bold text-slate-900 text-sm appearance-none cursor-pointer"
                           value={selectedSlots.length > 0 ? selectedSlots[0].startTime : ''}
                           onChange={(e) => {
@@ -328,8 +329,9 @@ const VenueDetail = () => {
                         </select>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">End</label>
+                        <label htmlFor="end-time" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">End</label>
                         <select
+                          id="end-time"
                           className="w-full bg-white border border-slate-100 px-4 py-3.5 rounded-xl outline-none focus:ring-4 focus:ring-slate-900/5 transition-all font-bold text-slate-900 text-sm appearance-none cursor-pointer disabled:opacity-50"
                           value={selectedSlots.length > 1 ? selectedSlots[selectedSlots.length - 1].endTime : ''}
                           disabled={selectedSlots.length === 0}

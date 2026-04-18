@@ -110,6 +110,7 @@ const Register = () => {
                 <div className="relative group">
                   <FiUser className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-900 transition-colors" />
                   <input
+                    id="name"
                     name="name"
                     type="text"
                     required
@@ -129,6 +130,7 @@ const Register = () => {
                 <div className="relative group">
                   <FiMail className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-900 transition-colors" />
                   <input
+                    id="email"
                     name="email"
                     type="email"
                     required
@@ -148,6 +150,7 @@ const Register = () => {
                 <div className="relative group">
                   <FiPhone className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-900 transition-colors" />
                   <input
+                    id="phone"
                     name="phone"
                     type="tel"
                     className="w-full bg-slate-50 border border-slate-100 pl-14 pr-6 py-4 rounded-2xl outline-none focus:ring-4 focus:ring-slate-900/5 focus:bg-white focus:border-slate-900/10 transition-all font-bold text-slate-900 placeholder:text-slate-200"
@@ -200,6 +203,7 @@ const Register = () => {
                 <div className="relative group">
                   <FiLock className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-900 transition-colors" />
                   <input
+                    id="password"
                     name="password"
                     type={showPassword ? 'text' : 'password'}
                     required
@@ -227,6 +231,7 @@ const Register = () => {
                 <div className="relative group">
                   <FiLock className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-900 transition-colors" />
                   <input
+                    id="confirmPassword"
                     name="confirmPassword"
                     type={showConfirmPassword ? 'text' : 'password'}
                     required

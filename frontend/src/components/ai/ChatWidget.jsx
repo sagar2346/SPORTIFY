@@ -162,7 +162,7 @@ const ChatWidget = () => {
                     </div>
 
                     {/* Input Area */}
-                    <form onSubmit={handleSend} className="p-3 bg-white border-t border-gray-100">
+                    <form onSubmit={handleSend} className="p-3 bg-white border-t border-gray-100" aria-label="chat-form">
                         <div className="flex items-center space-x-2">
                             <input
                                 type="text"
