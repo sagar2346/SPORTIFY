@@ -54,9 +54,39 @@ typings/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variables file (Uncommented for seamless deployment as requested)
-#.env
-#.env.test
+# Local Environment Files
+.env
+.env.*
+.backend.env
+frontend/.env
+*env*.js
+*env*.jsx
+
+# Documentation & Config Markdown
+*.md
+!node_modules/**/*.md
+
+# Test Files
+*.test.js
+*.test.jsx
+*.spec.js
+*.spec.jsx
+*test*.js
+*test*.jsx
+tests/
+backend/tests/
+frontend/src/**/*.test.js
+frontend/src/**/*.test.jsx
+test_env_loading.js
+
+# Logs and Text Files
+*.log
+*.txt
+logs/
+
+# IDE Settings
+.vscode/
+.idea/
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
