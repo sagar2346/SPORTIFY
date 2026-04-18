@@ -2,34 +2,24 @@ const User = require('../models/User');
 const path = require('path');
 const fs = require('fs');
 
-// @desc    Upload KYC documents (Business Doc, Owner ID Front, Back, and Passport Photo)
+// @desc    Upload KYC documents (Front, Back, and Passport Photo)
 // @route   POST /api/kyc/upload
-// @access  Private (Venue Owner Only)
+// @access  Private
 exports.uploadKycDocument = async (req, res, next) => {
     try {
-        if (req.user.role !== 'venue_owner') {
-            return res.status(403).json({
-                success: false,
-                message: 'Only venue owners (partners) are required to complete KYC verification',
-            });
-        }
-
-        if (!req.files || !req.files.document || !req.files.front || !req.files.back || !req.files.photo) {
+        if (!req.files || !req.files.front || !req.files.back || !req.files.photo) {
             return res.status(400).json({
                 success: false,
-                message: 'Please upload business document, owner ID (front & back), and passport photo',
+                message: 'Please upload front citizenship, back citizenship, and your passport photo',
             });
         }
 
-        const { identificationNumber } = req.body;
         const user = await User.findById(req.user.id);
 
         // Update user fields
-        user.kycBusinessDocument = `/uploads/kyc/${req.files.document[0].filename}`;
-        user.kycOwnerIdFront = `/uploads/kyc/${req.files.front[0].filename}`;
-        user.kycOwnerIdBack = `/uploads/kyc/${req.files.back[0].filename}`;
+        user.kycDocumentFront = `/uploads/kyc/${req.files.front[0].filename}`;
+        user.kycDocumentBack = `/uploads/kyc/${req.files.back[0].filename}`;
         user.kycPassportPhoto = `/uploads/kyc/${req.files.photo[0].filename}`;
-        user.kycIdentificationNumber = identificationNumber || '';
         user.kycStatus = 'pending';
         user.kycSubmittedAt = Date.now();
 
@@ -40,11 +30,9 @@ exports.uploadKycDocument = async (req, res, next) => {
             message: 'KYC documents uploaded successfully. Verification is pending.',
             data: {
                 kycStatus: user.kycStatus,
-                kycBusinessDocument: user.kycBusinessDocument,
-                kycOwnerIdFront: user.kycOwnerIdFront,
-                kycOwnerIdBack: user.kycOwnerIdBack,
+                kycDocumentFront: user.kycDocumentFront,
+                kycDocumentBack: user.kycDocumentBack,
                 kycPassportPhoto: user.kycPassportPhoto,
-                kycIdentificationNumber: user.kycIdentificationNumber,
                 kycSubmittedAt: user.kycSubmittedAt
             }
         });

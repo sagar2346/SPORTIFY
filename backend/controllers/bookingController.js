@@ -1,33 +1,25 @@
 const Booking = require('../models/Booking');
 const Venue = require('../models/Venue');
 const User = require('../models/User');
-const Team = require('../models/Team');
 const DiscountCode = require('../models/DiscountCode');
 const { calculatePrice } = require('../utils/pricing');
 const { sendBookingConfirmation } = require('../utils/email');
 const { generateQRCode, generateTicketPDF } = require('../utils/ticket');
-const path = require('path');
-const fs = require('fs');
 
 // @desc    Create booking
 // @route   POST /api/bookings
 // @access  Private
 exports.createBooking = async (req, res, next) => {
   try {
-    const { venueId, bookingDate, startTime, endTime, numberOfPlayers, discountCode, teamId } = req.body;
+    const { venueId, bookingDate, startTime, endTime, numberOfPlayers, discountCode } = req.body;
 
-    // If booking for a team, check if team is blocked
-    if (teamId) {
-      const team = await Team.findById(teamId);
-      if (!team) {
-        return res.status(404).json({ success: false, message: 'Team not found' });
-      }
-      if (team.isBlocked) {
-        return res.status(403).json({
-          success: false,
-          message: 'Your team is blocked from making bookings. Please check your fine status.',
-        });
-      }
+    // Check KYC status (Mandatory verification for all bookings)
+    const user = await User.findById(req.user.id);
+    if (user.role === 'customer' && user.kycStatus !== 'verified') {
+      return res.status(403).json({
+        success: false,
+        message: 'KYC verification required before booking any venue. Please upload your citizenship document in your profile.',
+      });
     }
 
     // Check venue exists
@@ -39,21 +31,14 @@ exports.createBooking = async (req, res, next) => {
       });
     }
 
-    // Check availability (Overlapping check)
+    // Check availability
     const bookingDateObj = new Date(bookingDate);
-    // Use a more robust check for time overlaps
     const existingBooking = await Booking.findOne({
       venue: venueId,
       bookingDate: bookingDateObj,
-      status: { $in: ['pending', 'confirmed', 'completed'] },
-      $or: [
-        {
-          $and: [
-            { startTime: { $lt: endTime } },
-            { endTime: { $gt: startTime } }
-          ]
-        }
-      ]
+      startTime,
+      endTime,
+      status: { $in: ['pending', 'confirmed'] },
     });
 
     if (existingBooking) {
@@ -120,7 +105,6 @@ exports.createBooking = async (req, res, next) => {
       basePrice,
       totalPrice,
       discount,
-      team: teamId || null,
     });
 
     // Populate venue details
@@ -144,16 +128,10 @@ exports.getBookings = async (req, res, next) => {
 
     // Filter by user role
     if (req.user.role === 'customer') {
-      query.user = req.user._id;
+      query.user = req.user.id;
     } else if (req.user.role === 'venue_owner') {
-      const venues = await Venue.find({ owner: req.user._id });
-      const venueIds = venues.map((v) => v._id);
-      query = {
-        $or: [
-          { venue: { $in: venueIds } },
-          { user: req.user._id }
-        ]
-      };
+      const venues = await Venue.find({ owner: req.user.id });
+      query.venue = { $in: venues.map((v) => v._id) };
     }
 
     const bookings = await Booking.find(query)
@@ -275,14 +253,6 @@ exports.confirmBooking = async (req, res, next) => {
       });
     }
 
-    // Check authorization (Must be owner of the venue or admin)
-    if (booking.venue.owner.toString() !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to confirm this booking',
-      });
-    }
-
     // Allow confirming if status is pending OR verification_pending
     if (booking.status !== 'pending' && booking.payment.status !== 'verification_pending') {
       return res.status(400).json({
@@ -305,26 +275,11 @@ exports.confirmBooking = async (req, res, next) => {
 
     await booking.save();
 
-    // Robust Loyalty Point Awarding (5% of booking price)
-    try {
-      const price = Number(booking.totalPrice) || 0;
-      const pointsAwarded = Math.round(price * 0.05 * 100) / 100;
-      
-      // Use booking.user directly if it's an ID, or booking.user._id if it's populated
-      const userId = booking.user._id || booking.user;
-
-      if (userId && pointsAwarded > 0) {
-        console.log(`[Loyalty System] Awarding ${pointsAwarded} points to User ${userId} for Booking ${booking._id}`);
-        
-        await User.findByIdAndUpdate(userId, {
-          $inc: { loyaltyPoints: pointsAwarded }
-        });
-      } else {
-        console.warn(`[Loyalty System] Skipping award. Points: ${pointsAwarded}, UserID found: ${!!userId}`);
-      }
-    } catch (ptsError) {
-      console.error('[Loyalty System] ERROR awarding points:', ptsError.message);
-    }
+    // Award Loyalty Points (5% of total price)
+    const pointsAwarded = Math.round(booking.totalPrice * 0.05);
+    await User.findByIdAndUpdate(booking.user._id, {
+      $inc: { loyaltyPoints: pointsAwarded }
+    });
 
     // Send confirmation email
     try {
@@ -340,7 +295,7 @@ exports.confirmBooking = async (req, res, next) => {
         $push: {
           notifications: {
             type: 'booking',
-            message: `Your booking at ${booking.venue?.name || 'the venue'} has been confirmed!`,
+            message: `Your booking at ${booking.venue.name} has been confirmed!`,
           },
         },
       });
@@ -406,7 +361,7 @@ exports.cancelBooking = async (req, res, next) => {
       $push: {
         notifications: {
           type: 'booking',
-          message: `Your booking at ${booking.venue?.name || 'the venue'} has been cancelled.`,
+          message: `Your booking at ${booking.venue.name} has been cancelled.`,
         },
       },
     });
@@ -484,103 +439,6 @@ exports.rescheduleBooking = async (req, res, next) => {
   }
 };
 
-// @desc    Pay for booking using wallet balance
-// @route   PUT /api/bookings/:id/pay-wallet
-// @access  Private
-exports.payWithWallet = async (req, res, next) => {
-  try {
-    const booking = await Booking.findById(req.params.id).populate('venue user');
-    const user = await User.findById(req.user.id);
-
-    if (!booking) {
-      return res.status(404).json({ success: false, message: 'Booking not found' });
-    }
-
-    // Check authorization
-    if (booking.user._id.toString() !== req.user.id) {
-      return res.status(403).json({ success: false, message: 'Not authorized' });
-    }
-
-    if (booking.status !== 'pending') {
-      return res.status(400).json({ success: false, message: 'Booking is already processed' });
-    }
-
-    if (user.walletBalance < booking.totalPrice) {
-      return res.status(400).json({
-        success: false,
-        message: `Insufficient wallet balance. You have रू ${user.walletBalance.toLocaleString()} but need रू ${booking.totalPrice.toLocaleString()}.`,
-      });
-    }
-
-    // Deduct from wallet
-    user.walletBalance -= booking.totalPrice;
-    await user.save();
-
-    // Confirm booking logic
-    const { generateQRCode, generateTicketPDF } = require('../utils/ticket');
-    const { sendBookingConfirmation } = require('../utils/email');
-
-    const qrCode = await generateQRCode(booking._id.toString());
-    const pdfUrl = await generateTicketPDF(booking);
-
-    booking.status = 'confirmed';
-    booking.payment.status = 'paid';
-    booking.payment.method = 'wallet';
-    booking.payment.paidAt = new Date();
-    booking.ticket.qrCode = qrCode;
-    booking.ticket.pdfUrl = pdfUrl;
-
-    await booking.save();
-
-    // Robust Loyalty Point Awarding (5% of booking price)
-    try {
-      const price = Number(booking.totalPrice) || 0;
-      const pointsAwarded = Math.round(price * 0.05 * 100) / 100;
-
-      if (user._id && pointsAwarded > 0) {
-        console.log(`[Loyalty System] Awarding ${pointsAwarded} points to User ${user._id} for WALLET Booking ${booking._id}`);
-        
-        await User.findByIdAndUpdate(user._id, {
-          $inc: { loyaltyPoints: pointsAwarded }
-        });
-      } else {
-        console.warn(`[Loyalty System] Skipping wallet award. Points: ${pointsAwarded}`);
-      }
-    } catch (ptsError) {
-      console.error('[Loyalty System] ERROR awarding points (Wallet):', ptsError.message);
-    }
-
-    // Send confirmation email
-    try {
-      await sendBookingConfirmation(booking);
-    } catch (emailError) {
-      console.error('Email sending failed:', emailError);
-    }
-
-    // Add notification
-    try {
-      await User.findByIdAndUpdate(user._id, {
-        $push: {
-          notifications: {
-            type: 'booking',
-            message: `Your booking at ${booking.venue?.name} has been paid via Wallet and confirmed!`,
-          },
-        },
-      });
-    } catch (notifError) {
-      console.error('Notification failed:', notifError);
-    }
-
-    res.status(200).json({
-      success: true,
-      data: booking,
-      message: 'Payment successful using wallet'
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
 // @desc    Delete booking (Admin only)
 // @route   DELETE /api/bookings/:id
 // @access  Private (Admin)
@@ -614,40 +472,3 @@ exports.deleteBooking = async (req, res, next) => {
   }
 };
 
-
-// @desc    Download ticket PDF
-// @route   GET /api/bookings/:id/download
-// @access  Private/Public
-exports.downloadTicket = async (req, res, next) => {
-  try {
-    const booking = await Booking.findById(req.params.id);
-
-    if (!booking) {
-      return res.status(404).json({
-        success: false,
-        message: 'Booking not found',
-      });
-    }
-
-    // Check if ticket exists
-    if (!booking.ticket || !booking.ticket.pdfUrl) {
-      return res.status(400).json({
-        success: false,
-        message: 'Ticket not yet generated for this booking. It must be confirmed first.',
-      });
-    }
-
-    const pdfPath = path.join(__dirname, '..', booking.ticket.pdfUrl);
-
-    if (!fs.existsSync(pdfPath)) {
-      return res.status(404).json({
-        success: false,
-        message: 'Ticket file not found on server.',
-      });
-    }
-
-    res.download(pdfPath, `ticket-${booking._id}.pdf`);
-  } catch (error) {
-    next(error);
-  }
-};

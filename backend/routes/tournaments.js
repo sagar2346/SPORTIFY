@@ -8,7 +8,6 @@ const {
     deleteTournament,
     registerTeam,
 } = require('../controllers/tournamentController');
-const upload = require('../middleware/upload');
 
 const { protect, authorize } = require('../middleware/auth');
 
@@ -21,8 +20,8 @@ router.use(protect);
 router.post('/:id/register', authorize('customer'), registerTeam);
 
 // Admin only routes
-router.post('/', authorize('admin'), upload.single('image'), createTournament);
-router.put('/:id', authorize('admin'), upload.single('image'), updateTournament);
+router.post('/', authorize('admin'), createTournament);
+router.put('/:id', authorize('admin'), updateTournament);
 router.delete('/:id', authorize('admin'), deleteTournament);
 
 module.exports = router;

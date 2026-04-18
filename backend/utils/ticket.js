@@ -6,8 +6,10 @@ const path = require('path');
 // Generate QR code
 exports.generateQRCode = async (bookingId) => {
   try {
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
-    const qrData = `${clientUrl}/bookings/${bookingId}/ticket/download`;
+    const qrData = {
+      bookingId: bookingId,
+      timestamp: new Date().toISOString(),
+    };
 
     const qrCodePath = path.join(
       __dirname,

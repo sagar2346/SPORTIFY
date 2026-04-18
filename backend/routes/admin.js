@@ -15,8 +15,6 @@ const {
   getOwnerRevenues,
   getPendingKyc,
   updateKycStatus,
-  getTeams,
-  updateTeamBlockStatus,
 } = require('../controllers/adminController');
 const { protect, authorize } = require('../middleware/auth');
 
@@ -37,7 +35,5 @@ router.get('/reports', generateReports);
 router.get('/revenue-by-owner', getOwnerRevenues);
 router.get('/kyc/pending', getPendingKyc);
 router.put('/kyc/:userId/status', updateKycStatus);
-router.get('/teams', getTeams);
-router.put('/teams/:id/block-status', updateTeamBlockStatus);
 
 module.exports = router;

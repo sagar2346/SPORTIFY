@@ -11,10 +11,6 @@ const BookingSchema = new mongoose.Schema({
     ref: 'Venue',
     required: true,
   },
-  team: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Team',
-  },
   bookingDate: {
     type: Date,
     required: true,
@@ -59,7 +55,7 @@ const BookingSchema = new mongoose.Schema({
     },
     method: {
       type: String,
-      enum: ['stripe', 'paypal', 'esewa', 'bank_transfer', 'wallet'],
+      enum: ['stripe', 'paypal', 'esewa', 'bank_transfer'],
     },
     transactionId: String,
     paidAt: Date,
@@ -84,10 +80,6 @@ const BookingSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now,
-  },
-  isReviewed: {
-    type: Boolean,
-    default: false,
   },
 });
 

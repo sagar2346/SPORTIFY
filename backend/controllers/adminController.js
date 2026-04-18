@@ -4,10 +4,6 @@ const Venue = require('../models/Venue');
 const Booking = require('../models/Booking');
 const Review = require('../models/Review');
 const DiscountCode = require('../models/DiscountCode');
-const Team = require('../models/Team');
-const Tournament = require('../models/Tournament');
-const TournamentRegistration = require('../models/TournamentRegistration');
-const Footage = require('../models/Footage');
 
 // @desc    Get dashboard stats
 // @route   GET /api/admin/dashboard
@@ -251,65 +247,10 @@ exports.deleteUser = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    // Role-specific Cascade Deletion
-    if (targetUser.role === 'venue_owner') {
-      // Find all venues owned by this user
-      const venues = await Venue.find({ owner: targetUser._id });
-      const venueIds = venues.map(v => v._id);
-
-      console.log(`[Cascade Delete] User is a Venue Owner. Removing ${venues.length} venues and associated data.`);
-
-      if (venueIds.length > 0) {
-        // 1. Delete all reviews for these venues
-        await Review.deleteMany({ venue: { $in: venueIds } });
-        
-        // 2. Delete all bookings for these venues
-        await Booking.deleteMany({ venue: { $in: venueIds } });
-
-        // 3. Delete all tournaments at these venues
-        const tournaments = await Tournament.find({ venue: { $in: venueIds } });
-        const tournamentIds = tournaments.map(t => t._id);
-        if (tournamentIds.length > 0) {
-          await TournamentRegistration.deleteMany({ tournament: { $in: tournamentIds } });
-          await Tournament.deleteMany({ _id: { $in: tournamentIds } });
-        }
-
-        // 4. Delete all footage for these venues
-        await Footage.deleteMany({ venue: { $in: venueIds } });
-
-        // 5. Delete the venues themselves
-        await Venue.deleteMany({ _id: { $in: venueIds } });
-      }
-    }
-
-    // General Cleanup for any user role
-    // Delete tournaments created by the user
-    const userTournaments = await Tournament.find({ createdBy: targetUser._id });
-    const userTournamentIds = userTournaments.map(t => t._id);
-    if (userTournamentIds.length > 0) {
-      await TournamentRegistration.deleteMany({ tournament: { $in: userTournamentIds } });
-      await Tournament.deleteMany({ _id: { $in: userTournamentIds } });
-    }
-
-    // Delete teams created by the user
-    await Team.deleteMany({ createdBy: targetUser._id });
-
-    // Delete tournament registrations made by the user
-    await TournamentRegistration.deleteMany({ registeredBy: targetUser._id });
-
-    // Delete bookings made by the user
-    await Booking.deleteMany({ user: targetUser._id });
-
-    // Finally delete the user
+    // Simplified Admin Logic: Admin can delete anyone
     await User.findByIdAndDelete(req.params.id);
-    
-    console.log(`Admin deleted user: ${targetUser.name} (${targetUser._id})`);
-    
-    return res.status(200).json({ 
-      success: true, 
-      message: 'User and all associated data deleted successfully',
-      data: {} 
-    });
+    console.log(`Admin deleted user: ${req.params.id}`);
+    return res.status(200).json({ success: true, data: {} });
 
   } catch (error) {
     next(error);
@@ -442,8 +383,8 @@ exports.getOwnerRevenues = async (req, res, next) => {
 // @access  Private (Admin)
 exports.getPendingKyc = async (req, res, next) => {
   try {
-    const pendingKyc = await User.find({ kycStatus: { $in: ['pending', 'manual_verified'] } })
-      .select('name email kycStatus kycBusinessDocument kycOwnerIdFront kycOwnerIdBack kycPassportPhoto kycIdentificationNumber kycSubmittedAt')
+    const pendingKyc = await User.find({ kycStatus: 'pending' })
+      .select('name email kycStatus kycDocumentFront kycDocumentBack kycPassportPhoto kycSubmittedAt')
       .sort({ kycSubmittedAt: 1 });
 
     res.status(200).json({
@@ -481,84 +422,15 @@ exports.updateKycStatus = async (req, res, next) => {
     await user.save();
 
     // Notify user
-    let notifyMessage = `Your KYC verification request has been ${status}.`;
-    if (status === 'verified') {
-      notifyMessage = 'Your account is now fully verified as a Partner. You can now list and manage your venues.';
-    } else if (status === 'rejected') {
-      notifyMessage = `Your KYC verification request was rejected. Reason: ${reason || 'Please re-upload clear business documents.'}`;
-    } else if (status === 'manual_verified') {
-      notifyMessage = 'Your manual KYC check is complete. Starting automatic government verification...';
-    }
-
     user.notifications.push({
       type: 'system',
-      message: notifyMessage,
+      message: `Your KYC verification request has been ${status}. ${status === 'verified' ? 'You can now book venues.' : `Reason: ${reason || 'Please re-upload a clear document.'}`}`,
     });
     await user.save();
 
     res.status(200).json({
       success: true,
       data: user,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Get all teams
-// @route   GET /api/admin/teams
-// @access  Private (Admin)
-exports.getTeams = async (req, res, next) => {
-  try {
-    const teams = await Team.find()
-      .populate('createdBy', 'name email')
-      .sort({ createdAt: -1 });
-
-    res.status(200).json({
-      success: true,
-      count: teams.length,
-      data: teams,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Update team block status and fine
-// @route   PUT /api/admin/teams/:id/block-status
-// @access  Private (Admin)
-exports.updateTeamBlockStatus = async (req, res, next) => {
-  try {
-    const { isBlocked, fineAmount } = req.body;
-    const updateData = { isBlocked, fineAmount };
-
-    const team = await Team.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, runValidators: true }
-    );
-
-    if (!team) {
-      return res.status(404).json({ success: false, message: 'Team not found' });
-    }
-
-    // Notify team leader/members
-    try {
-      const leader = await User.findById(team.createdBy);
-      if (leader) {
-        leader.notifications.push({
-          type: 'system',
-          message: `Your team "${team.name}" has been ${isBlocked ? 'blocked' : 'unblocked'} by the admin.${isBlocked && fineAmount > 0 ? ` A fine of Rs. ${fineAmount} has been imposed.` : ''}`,
-        });
-        await leader.save();
-      }
-    } catch (notifError) {
-      console.error('Notification failed:', notifError);
-    }
-
-    res.status(200).json({
-      success: true,
-      data: team,
     });
   } catch (error) {
     next(error);

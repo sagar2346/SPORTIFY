@@ -23,17 +23,6 @@ const errorHandler = (err, req, res, next) => {
     error = { message, statusCode: 400 };
   }
 
-  // Multer error
-  if (err.name === 'MulterError') {
-    let message = err.message;
-    if (err.code === 'LIMIT_FILE_SIZE') {
-      message = `File too large. Max size allowed is ${process.env.MAX_FILE_SIZE || '5MB'}`;
-    } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-      message = `Unexpected field: ${err.field}. Please check the API documentation for valid field names.`;
-    }
-    error = { message, statusCode: 400 };
-  }
-
   res.status(error.statusCode || 500).json({
     success: false,
     error: error.message || 'Server Error',

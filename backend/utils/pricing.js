@@ -1,40 +1,36 @@
 const calculatePrice = async (venue, bookingDate, startTime, endTime) => {
-  let totalBasePrice = 0;
+  let price = venue.basePrice;
 
-  // Determine day type (constant for the booking date)
+  // Determine day type
   const dayOfWeek = bookingDate.getDay();
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
   const dayType = isWeekend ? 'weekend' : 'weekday';
 
-  // Parse hours
-  const startHour = parseInt(startTime.split(':')[0]);
-  const endHour = parseInt(endTime.split(':')[0]);
-  const durationInHours = endHour - startHour;
+  // Determine time type (peak hours: 6 PM - 10 PM)
+  const hour = parseInt(startTime.split(':')[0]);
+  const isPeak = hour >= 18 && hour < 22;
+  const timeType = isPeak ? 'peak' : 'off-peak';
 
-  // Calculate price for each hour in the duration
-  for (let i = 0; i < durationInHours; i++) {
-    const currentHour = startHour + i;
-    let hourlyPrice = venue.basePrice;
+  // Apply pricing rules
+  if (venue.pricingRules && venue.pricingRules.length > 0) {
+    const applicableRule = venue.pricingRules.find(
+      (rule) => rule.dayType === dayType && rule.timeType === timeType
+    );
 
-    // Determine time type for this specific hour (peak hours: 6 PM - 10 PM)
-    const isPeak = currentHour >= 18 && currentHour < 22;
-    const timeType = isPeak ? 'peak' : 'off-peak';
-
-    // Apply pricing rules for this hour
-    if (venue.pricingRules && venue.pricingRules.length > 0) {
-      const applicableRule = venue.pricingRules.find(
-        (rule) => rule.dayType === dayType && rule.timeType === timeType
-      );
-
-      if (applicableRule) {
-        hourlyPrice = hourlyPrice * applicableRule.multiplier;
-      }
+    if (applicableRule) {
+      price = price * applicableRule.multiplier;
     }
-
-    totalBasePrice += hourlyPrice;
+  } else {
+    // Default pricing rules
+    if (isWeekend) {
+      price = price * 1.2; // 20% increase on weekends
+    }
+    if (isPeak) {
+      price = price * 1.3; // 30% increase during peak hours
+    }
   }
 
-  return Math.round(totalBasePrice * 100) / 100; // Round to 2 decimal places
+  return Math.round(price * 100) / 100; // Round to 2 decimal places
 };
 
 module.exports = { calculatePrice };

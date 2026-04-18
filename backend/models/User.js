@@ -87,25 +87,17 @@ const UserSchema = new mongoose.Schema({
       },
     },
   ],
-  // KYC verification (Now for Venue Owners/Partners)
+  // KYC verification
   kycStatus: {
     type: String,
-    enum: ['not_verified', 'pending', 'manual_verified', 'verified', 'rejected'],
+    enum: ['not_verified', 'pending', 'verified', 'rejected'],
     default: 'not_verified',
   },
-  kycIdentificationNumber: {
+  kycDocumentFront: {
     type: String,
     default: '',
   },
-  kycBusinessDocument: {
-    type: String,
-    default: '',
-  },
-  kycOwnerIdFront: {
-    type: String,
-    default: '',
-  },
-  kycOwnerIdBack: {
+  kycDocumentBack: {
     type: String,
     default: '',
   },
@@ -124,10 +116,6 @@ const UserSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-  walletBalance: {
-    type: Number,
-    default: 0,
-  },
   referralCode: {
     type: String,
     unique: true,
@@ -138,10 +126,6 @@ const UserSchema = new mongoose.Schema({
   },
   resetPasswordToken: String,
   resetPasswordExpire: Date,
-  isOnline: {
-    type: Boolean,
-    default: false,
-  },
   createdAt: {
     type: Date,
     default: Date.now,

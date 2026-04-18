@@ -21,15 +21,8 @@ const teamSchema = new mongoose.Schema({
         required: true,
     },
     members: [{
-        user: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-        },
-        role: {
-            type: String,
-            enum: ['leader', 'admin', 'member'],
-            default: 'member'
-        }
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
     }],
     inviteCode: {
         type: String,
@@ -39,24 +32,6 @@ const teamSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
-    isBlocked: {
-        type: Boolean,
-        default: false,
-    },
-    fineAmount: {
-        type: Number,
-        default: 0,
-    },
-    finePaymentStatus: {
-        type: String,
-        enum: ['unpaid', 'pending_verification', 'paid'],
-        default: 'unpaid'
-    },
-    finePaymentMethod: {
-        type: String,
-        enum: ['esewa', 'bank_transfer', null],
-        default: null
-    }
 });
 
 // Generate invite code before saving
